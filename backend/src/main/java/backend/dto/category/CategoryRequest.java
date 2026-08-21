@@ -1,9 +1,13 @@
 package backend.dto.category;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class CategoryRequest {
 
+    @NotBlank
     private String name;
 
+    @NotBlank
     private String type;
 
     public CategoryRequest() {

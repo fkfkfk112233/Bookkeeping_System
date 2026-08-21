@@ -3,18 +3,28 @@ package backend.dto.transaction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 public class TransactionRequest {
 
+    @NotNull
     private Long categoryId;
 
+    @NotBlank
     private String type;
 
+    @NotNull
+    @Positive
     private BigDecimal amount;
 
+    @NotBlank
     private String paymentMethod;
 
     private String description;
 
+    @NotNull
     private LocalDate transactionDate;
 
     public TransactionRequest() {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import backend.dto.transaction.TransactionRequest;
 import backend.dto.transaction.TransactionResponse;
 import backend.service.TransactionService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -48,7 +49,7 @@ public class TransactionController {
     
     @PostMapping
     public ResponseEntity<TransactionResponse> createTransaction(
-            @RequestBody TransactionRequest request) {
+            @RequestBody @Valid TransactionRequest request) {
 
         TransactionResponse response =
                 transactionService.createTransaction(request);
@@ -61,7 +62,7 @@ public class TransactionController {
     @PutMapping("/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
             @PathVariable Long id,
-            @RequestBody TransactionRequest request) {
+            @RequestBody @Valid TransactionRequest request) {
 
         TransactionResponse response =
                 transactionService.updateTransaction(id, request);
