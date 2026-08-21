@@ -2,6 +2,7 @@ package backend.dto.transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -27,7 +28,7 @@ public class TransactionRequest {
     private String description;
 
     @NotNull
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
 
     public TransactionRequest() {
     }
@@ -72,11 +73,11 @@ public class TransactionRequest {
         this.description = description;
     }
 
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(@NotNull LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 }
