@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
 import TransactionModal from "../components/TransactionModal";
-import { getTransactions } from "../services/transactionApi";
+import { getTransactions, createTransaction } from "../services/transactionApi";
 
 function Transactions() {
   const [showModal, setShowModal] = useState(false);
@@ -68,10 +68,21 @@ function Transactions() {
     setEditingTransaction(null);
   };
 
-  const handleSubmit = (data) => {
-    console.log("Transaction submit:", data);
+  const handleSubmit = async (data) => {
+    try {
+      await createTransaction({
+        ...data,
+        type: modalType,
+      });
 
-    handleCloseModal();
+      handleCloseModal();
+
+      await fetchTransactions();
+    } catch (error) {
+      console.error("Failed to create transaction:", error);
+
+      setError("新增交易失敗");
+    }
   };
 
   const [dateRange, setDateRange] = useState("month");
@@ -133,26 +144,26 @@ function Transactions() {
     return `${year}-${month}-${day}`;
   };
 
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const { startDate, endDate } = getDateRange();
+
+      const response = await getTransactions(startDate, endDate);
+
+      setTransactions(response.data);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+
+      setError("無法取得交易紀錄");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        setError("");
-
-        const { startDate, endDate } = getDateRange();
-
-        const response = await getTransactions(startDate, endDate);
-
-        setTransactions(response.data);
-      } catch (error) {
-        console.error("Failed to fetch transactions:", error);
-
-        setError("無法取得交易紀錄");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTransactions();
   }, [dateRange]);
 
