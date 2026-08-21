@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
+import backend.enums.StatisticsInterval;
 import backend.enums.TransactionType;
 import backend.repository.TransactionRepository;
 
@@ -93,5 +94,26 @@ public class DashboardService {
         });
 
         return results;
+    }
+    
+    private StatisticsInterval determineInterval(
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        long days =
+                java.time.temporal.ChronoUnit.DAYS.between(
+                        startDate,
+                        endDate
+                ) + 1;
+
+        if (days == 1) {
+            return StatisticsInterval.HOUR;
+        }
+
+        if (days <= 31) {
+            return StatisticsInterval.DAY;
+        }
+
+        return StatisticsInterval.MONTH;
     }
 }
