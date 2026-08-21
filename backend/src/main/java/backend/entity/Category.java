@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import backend.enums.TransactionType;
@@ -27,6 +28,12 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 所屬使用者
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 父分類
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
@@ -46,13 +53,21 @@ public class Category {
     }
 
     public Category(User user, String name, TransactionType type) {
-        this.category = category;
+        this.user = user;
         this.name = name;
         this.type = type;
     }
 
     public Long getId() {
         return id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Category getCategory() {
