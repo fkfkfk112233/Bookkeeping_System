@@ -146,9 +146,17 @@ public class DashboardService {
                     endDateTime
             );
 
-        } else {
+        } else if (interval == StatisticsInterval.DAY) {
 
             results = transactionRepository.getDailyTrend(
+                    TransactionType.EXPENSE.name(),
+                    startDateTime,
+                    endDateTime
+            );
+
+        } else {
+
+            results = transactionRepository.getMonthlyTrend(
                     TransactionType.EXPENSE.name(),
                     startDateTime,
                     endDateTime
