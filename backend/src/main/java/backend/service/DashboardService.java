@@ -31,22 +31,32 @@ public class DashboardService {
         this.transactionRepository = transactionRepository;
     }
 
+    // =========================
+    // Summary
+    // =========================
+
     public DashboardSummaryResponse getSummary(
             LocalDate startDate,
             LocalDate endDate) {
 
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.plusDays(1).atStartOfDay();
+
         BigDecimal income =
                 transactionRepository.sumAmountByTypeAndDateBetween(
                         TransactionType.INCOME,
-                        startDate,
-                        endDate
+                        startDateTime,
+                        endDateTime
                 );
 
         BigDecimal expense =
                 transactionRepository.sumAmountByTypeAndDateBetween(
                         TransactionType.EXPENSE,
-                        startDate,
-                        endDate
+                        startDateTime,
+                        endDateTime
                 );
 
         BigDecimal balance =
@@ -58,16 +68,26 @@ public class DashboardService {
                 balance
         );
     }
-    
+
+    // =========================
+    // Expense Category
+    // =========================
+
     public List<CategoryAmountResponse> getExpense(
             LocalDate startDate,
             LocalDate endDate) {
 
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.plusDays(1).atStartOfDay();
+
         List<CategoryAmountResponse> results =
                 transactionRepository.sumAmountGroupByCategory(
                         TransactionType.EXPENSE,
-                        startDate,
-                        endDate
+                        startDateTime,
+                        endDateTime
                 );
 
         results.forEach(result -> {
@@ -80,16 +100,26 @@ public class DashboardService {
 
         return results;
     }
-    
+
+    // =========================
+    // Income Category
+    // =========================
+
     public List<CategoryAmountResponse> getIncome(
             LocalDate startDate,
             LocalDate endDate) {
 
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.plusDays(1).atStartOfDay();
+
         List<CategoryAmountResponse> results =
                 transactionRepository.sumAmountGroupByCategory(
                         TransactionType.INCOME,
-                        startDate,
-                        endDate
+                        startDateTime,
+                        endDateTime
                 );
 
         results.forEach(result -> {
@@ -102,7 +132,11 @@ public class DashboardService {
 
         return results;
     }
-    
+
+    // =========================
+    // Determine Interval
+    // =========================
+
     private StatisticsInterval determineInterval(
             LocalDate startDate,
             LocalDate endDate) {
@@ -123,7 +157,11 @@ public class DashboardService {
 
         return StatisticsInterval.MONTH;
     }
-    
+
+    // =========================
+    // Expense Trend
+    // =========================
+
     public List<TrendResponse> getExpenseTrend(
             LocalDate startDate,
             LocalDate endDate) {
@@ -135,7 +173,7 @@ public class DashboardService {
                 startDate.atStartOfDay();
 
         LocalDateTime endDateTime =
-                endDate.atTime(23, 59, 59);
+                endDate.plusDays(1).atStartOfDay();
 
         List<Object[]> results;
 
@@ -185,7 +223,11 @@ public class DashboardService {
                 interval
         );
     }
-    
+
+    // =========================
+    // Fill Missing Trend
+    // =========================
+
     private List<TrendResponse> fillMissingIntervals(
             List<TrendResponse> existingResults,
             LocalDate startDate,
@@ -287,7 +329,11 @@ public class DashboardService {
 
         return response;
     }
-    
+
+    // =========================
+    // Income Trend
+    // =========================
+
     public List<TrendResponse> getIncomeTrend(
             LocalDate startDate,
             LocalDate endDate) {
@@ -299,7 +345,7 @@ public class DashboardService {
                 startDate.atStartOfDay();
 
         LocalDateTime endDateTime =
-                endDate.atTime(23, 59, 59);
+                endDate.plusDays(1).atStartOfDay();
 
         List<Object[]> results;
 
@@ -349,7 +395,11 @@ public class DashboardService {
                 interval
         );
     }
-    
+
+    // =========================
+    // Frequency
+    // =========================
+
     public List<FrequencyResponse> getFrequency(
             LocalDate startDate,
             LocalDate endDate) {
@@ -361,7 +411,7 @@ public class DashboardService {
                 startDate.atStartOfDay();
 
         LocalDateTime endDateTime =
-                endDate.atTime(23, 59, 59);
+                endDate.plusDays(1).atStartOfDay();
 
         List<Object[]> results;
 
@@ -412,7 +462,11 @@ public class DashboardService {
                 interval
         );
     }
-    
+
+    // =========================
+    // Fill Missing Frequency
+    // =========================
+
     private List<FrequencyResponse> fillMissingFrequencyIntervals(
             List<FrequencyResponse> existingResults,
             LocalDate startDate,
