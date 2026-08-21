@@ -1,6 +1,7 @@
 package backend.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
 import backend.service.DashboardService;
 
@@ -36,6 +38,44 @@ public class DashboardController {
 
         DashboardSummaryResponse response =
                 dashboardService.getSummary(
+                        startDate,
+                        endDate
+                );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/expense")
+    public ResponseEntity<List<CategoryAmountResponse>> getExpense(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        List<CategoryAmountResponse> response =
+                dashboardService.getExpense(
+                        startDate,
+                        endDate
+                );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/income")
+    public ResponseEntity<List<CategoryAmountResponse>> getIncome(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        List<CategoryAmountResponse> response =
+                dashboardService.getIncome(
                         startDate,
                         endDate
                 );
