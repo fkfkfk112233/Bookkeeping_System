@@ -1,5 +1,7 @@
 package backend.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import backend.dto.transaction.TransactionRequest;
@@ -21,6 +23,37 @@ public class TransactionService {
 
         this.transactionRepository = transactionRepository;
         this.categoryRepository = categoryRepository;
+    }
+    
+    public List<TransactionResponse> getAllTransactions() {
+
+        List<Transaction> transactions =
+                transactionRepository.findAll();
+
+        return transactions.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+    
+    private TransactionResponse toResponse(Transaction transaction) {
+
+        TransactionResponse response = new TransactionResponse();
+
+        response.setId(transaction.getId());
+        response.setCategoryId(
+                transaction.getCategory().getId());
+        response.setCategoryName(
+                transaction.getCategory().getName());
+        response.setType(transaction.getType());
+        response.setAmount(transaction.getAmount());
+        response.setPaymentMethod(
+                transaction.getPaymentMethod());
+        response.setDescription(
+                transaction.getDescription());
+        response.setTransactionDate(
+                transaction.getTransactionDate());
+
+        return response;
     }
     
     public TransactionResponse createTransaction(
@@ -58,6 +91,49 @@ public class TransactionService {
         response.setTransactionDate(
                 savedTransaction.getTransactionDate());
 
-        return response;
+        return toResponse(savedTransaction);
+    }
+    
+    public TransactionResponse getTransactionById(Long id) {
+
+        Transaction transaction = transactionRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        return toResponse(transaction);
+    }
+    
+    public TransactionResponse updateTransaction(
+            Long id,
+            TransactionRequest request) {
+
+        Transaction transaction = transactionRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        Category category = categoryRepository
+                .findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        transaction.setCategory(category);
+        transaction.setType(request.getType());
+        transaction.setAmount(request.getAmount());
+        transaction.setPaymentMethod(request.getPaymentMethod());
+        transaction.setDescription(request.getDescription());
+        transaction.setTransactionDate(request.getTransactionDate());
+
+        Transaction updatedTransaction =
+                transactionRepository.save(transaction);
+
+        return toResponse(updatedTransaction);
+    }
+    
+    public void deleteTransaction(Long id) {
+
+        Transaction transaction = transactionRepository
+                .findById(id)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        transactionRepository.delete(transaction);
     }
 }
