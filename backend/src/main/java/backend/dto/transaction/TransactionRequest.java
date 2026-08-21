@@ -3,25 +3,25 @@ package backend.dto.transaction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import backend.enums.PaymentMethod;
-import backend.enums.TransactionType;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
+import backend.enums.PaymentMethod;
+import backend.enums.TransactionType;
 
 public class TransactionRequest {
 
     @NotNull
     private Long categoryId;
 
-    @NotBlank
+    @NotNull
     private TransactionType type;
 
     @NotNull
     @Positive
     private BigDecimal amount;
 
-    @NotBlank
+    @NotNull
     private PaymentMethod paymentMethod;
 
     private String description;
@@ -44,7 +44,7 @@ public class TransactionRequest {
         return type;
     }
 
-    public void setType(@NotBlank TransactionType type) {
+    public void setType(TransactionType type) {
         this.type = type;
     }
 
@@ -60,7 +60,7 @@ public class TransactionRequest {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(@NotBlank PaymentMethod paymentMethod) {
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 
