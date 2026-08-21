@@ -4,7 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import backend.enums.PaymentMethod;
+import backend.enums.TransactionType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,11 +32,13 @@ public class Transaction {
     @JoinColumn(name = "category_id", nullable = true)
     private Category category;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
 
     private BigDecimal amount;
 
-    private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
     private String description;
 
@@ -48,9 +54,9 @@ public class Transaction {
     public Transaction(
             User user,
             Category category,
-            String type,
+            TransactionType type,
             BigDecimal amount,
-            String paymentMethod,
+            PaymentMethod paymentMethod,
             String description,
             LocalDate transactionDate) {
 
@@ -83,11 +89,11 @@ public class Transaction {
         this.category = category;
     }
 
-    public String getType() {
+    public TransactionType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(TransactionType type) {
         this.type = type;
     }
 
@@ -99,11 +105,11 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public String getPaymentMethod() {
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 
