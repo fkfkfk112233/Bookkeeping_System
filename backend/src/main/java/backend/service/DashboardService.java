@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
+import backend.dto.dashboard.FrequencyResponse;
 import backend.dto.dashboard.TrendResponse;
 import backend.enums.StatisticsInterval;
 import backend.enums.TransactionType;
@@ -278,6 +279,242 @@ public class DashboardService {
 
                 response.add(
                         new TrendResponse(label, amount)
+                );
+
+                current = current.plusMonths(1);
+            }
+        }
+
+        return response;
+    }
+    
+    public List<TrendResponse> getIncomeTrend(
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        StatisticsInterval interval =
+                determineInterval(startDate, endDate);
+
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.atTime(23, 59, 59);
+
+        List<Object[]> results;
+
+        if (interval == StatisticsInterval.HOUR) {
+
+            results = transactionRepository.getHourlyTrend(
+                    TransactionType.INCOME.name(),
+                    startDateTime,
+                    endDateTime
+            );
+
+        } else if (interval == StatisticsInterval.DAY) {
+
+            results = transactionRepository.getDailyTrend(
+                    TransactionType.INCOME.name(),
+                    startDateTime,
+                    endDateTime
+            );
+
+        } else {
+
+            results = transactionRepository.getMonthlyTrend(
+                    TransactionType.INCOME.name(),
+                    startDateTime,
+                    endDateTime
+            );
+        }
+
+        List<TrendResponse> response = new ArrayList<>();
+
+        for (Object[] result : results) {
+
+            String label = (String) result[0];
+
+            BigDecimal amount =
+                    new BigDecimal(result[1].toString());
+
+            response.add(
+                    new TrendResponse(label, amount)
+            );
+        }
+
+        return fillMissingIntervals(
+                response,
+                startDate,
+                endDate,
+                interval
+        );
+    }
+    
+    public List<FrequencyResponse> getFrequency(
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        StatisticsInterval interval =
+                determineInterval(startDate, endDate);
+
+        LocalDateTime startDateTime =
+                startDate.atStartOfDay();
+
+        LocalDateTime endDateTime =
+                endDate.atTime(23, 59, 59);
+
+        List<Object[]> results;
+
+        if (interval == StatisticsInterval.HOUR) {
+
+            results = transactionRepository.getHourlyFrequency(
+                    startDateTime,
+                    endDateTime
+            );
+
+        } else if (interval == StatisticsInterval.DAY) {
+
+            results = transactionRepository.getDailyFrequency(
+                    startDateTime,
+                    endDateTime
+            );
+
+        } else {
+
+            results = transactionRepository.getMonthlyFrequency(
+                    startDateTime,
+                    endDateTime
+            );
+        }
+
+        List<FrequencyResponse> response =
+                new ArrayList<>();
+
+        for (Object[] result : results) {
+
+            String label = (String) result[0];
+
+            Long count =
+                    ((Number) result[1]).longValue();
+
+            response.add(
+                    new FrequencyResponse(
+                            label,
+                            count
+                    )
+            );
+        }
+
+        return fillMissingFrequencyIntervals(
+                response,
+                startDate,
+                endDate,
+                interval
+        );
+    }
+    
+    private List<FrequencyResponse> fillMissingFrequencyIntervals(
+            List<FrequencyResponse> existingResults,
+            LocalDate startDate,
+            LocalDate endDate,
+            StatisticsInterval interval) {
+
+        Map<String, Long> existingData =
+                new HashMap<>();
+
+        for (FrequencyResponse result : existingResults) {
+
+            existingData.put(
+                    result.getLabel(),
+                    result.getCount()
+            );
+        }
+
+        List<FrequencyResponse> response =
+                new ArrayList<>();
+
+        if (interval == StatisticsInterval.HOUR) {
+
+            LocalDateTime current =
+                    startDate.atStartOfDay();
+
+            LocalDateTime end =
+                    endDate.atTime(23, 0);
+
+            while (!current.isAfter(end)) {
+
+                String label =
+                        current.format(
+                                DateTimeFormatter.ofPattern(
+                                        "yyyy-MM-dd HH:00"
+                                )
+                        );
+
+                Long count =
+                        existingData.getOrDefault(
+                                label,
+                                0L
+                        );
+
+                response.add(
+                        new FrequencyResponse(
+                                label,
+                                count
+                        )
+                );
+
+                current = current.plusHours(1);
+            }
+
+        } else if (interval == StatisticsInterval.DAY) {
+
+            LocalDate current = startDate;
+
+            while (!current.isAfter(endDate)) {
+
+                String label =
+                        current.toString();
+
+                Long count =
+                        existingData.getOrDefault(
+                                label,
+                                0L
+                        );
+
+                response.add(
+                        new FrequencyResponse(
+                                label,
+                                count
+                        )
+                );
+
+                current = current.plusDays(1);
+            }
+
+        } else {
+
+            YearMonth current =
+                    YearMonth.from(startDate);
+
+            YearMonth end =
+                    YearMonth.from(endDate);
+
+            while (!current.isAfter(end)) {
+
+                String label =
+                        current.toString();
+
+                Long count =
+                        existingData.getOrDefault(
+                                label,
+                                0L
+                        );
+
+                response.add(
+                        new FrequencyResponse(
+                                label,
+                                count
+                        )
                 );
 
                 current = current.plusMonths(1);
