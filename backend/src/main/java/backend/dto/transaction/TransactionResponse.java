@@ -2,6 +2,7 @@ package backend.dto.transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import backend.enums.PaymentMethod;
 import backend.enums.TransactionType;
@@ -22,7 +23,7 @@ public class TransactionResponse {
 
     private String description;
 
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
 
     public TransactionResponse() {
     }
@@ -83,11 +84,11 @@ public class TransactionResponse {
         this.description = description;
     }
 
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {
-        this.transactionDate = transactionDate;
+    public void setTransactionDate(LocalDateTime localDateTime) {
+        this.transactionDate = localDateTime;
     }
 }
