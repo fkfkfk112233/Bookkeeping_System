@@ -3,6 +3,9 @@ package backend.dto.transaction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import backend.enums.PaymentMethod;
+import backend.enums.TransactionType;
+
 public class TransactionResponse {
 
     private Long id;
@@ -11,11 +14,11 @@ public class TransactionResponse {
 
     private String categoryName;
 
-    private String type;
+    private TransactionType type;
 
     private BigDecimal amount;
 
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
 
     private String description;
 
@@ -48,12 +51,12 @@ public class TransactionResponse {
         this.categoryName = categoryName;
     }
 
-    public String getType() {
+    public TransactionType getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setType(TransactionType transactionType) {
+        this.type = transactionType;
     }
 
     public BigDecimal getAmount() {
@@ -64,11 +67,11 @@ public class TransactionResponse {
         this.amount = amount;
     }
 
-    public String getPaymentMethod() {
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 
-    public void setPaymentMethod(String paymentMethod) {
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 
