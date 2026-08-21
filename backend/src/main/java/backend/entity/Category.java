@@ -2,7 +2,10 @@ package backend.entity;
 
 import java.time.LocalDateTime;
 
+import backend.enums.TransactionType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,7 +25,8 @@ public class Category {
 
     private String name;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
 
     private LocalDateTime createdAt;
 
@@ -31,7 +35,7 @@ public class Category {
     public Category() {
     }
 
-    public Category(User user, String name, String type) {
+    public Category(User user, String name, TransactionType type) {
         this.category = category;
         this.name = name;
         this.type = type;
@@ -57,11 +61,11 @@ public class Category {
         this.name = name;
     }
 
-    public String getType() {
+    public TransactionType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(TransactionType type) {
         this.type = type;
     }
 
