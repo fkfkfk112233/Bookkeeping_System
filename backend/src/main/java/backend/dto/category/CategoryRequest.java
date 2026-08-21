@@ -1,14 +1,16 @@
 package backend.dto.category;
 
-import backend.enums.TransactionType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import backend.enums.TransactionType;
 
 public class CategoryRequest {
 
     @NotBlank
     private String name;
 
-    @NotBlank
+    @NotNull
     private TransactionType type;
 
     public CategoryRequest() {
@@ -26,7 +28,7 @@ public class CategoryRequest {
         return type;
     }
 
-    public void setType(@NotBlank TransactionType type) {
+    public void setType(TransactionType type) {
         this.type = type;
     }
 }
