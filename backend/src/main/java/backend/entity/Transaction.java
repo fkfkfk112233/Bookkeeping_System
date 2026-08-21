@@ -48,7 +48,7 @@ public class Transaction {
 
     private String description;
 
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -66,7 +66,7 @@ public class Transaction {
             BigDecimal amount,
             PaymentMethod paymentMethod,
             String description,
-            LocalDate transactionDate) {
+            LocalDateTime transactionDate) {
 
         this.user = user;
         this.category = category;
@@ -129,11 +129,11 @@ public class Transaction {
         this.description = description;
     }
 
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 
