@@ -2,6 +2,7 @@ import DateTimeCard from "../components/DateTimeCard";
 import SummaryCard from "../components/SummaryCard";
 import ChartCard from "../components/ChartCard";
 import IncomeExpensePieChart from "../components/IncomeExpensePieChart";
+import TrendLineChart from "../components/TrendLineChart";
 
 const expenseData = [
   {
@@ -31,6 +32,75 @@ const incomeData = [
     categoryId: 5,
     categoryName: "獎金",
     amount: 5000,
+  },
+];
+
+const incomeTrendData = [
+  {
+    label: "08/01",
+    amount: 30000,
+  },
+  {
+    label: "08/02",
+    amount: 0,
+  },
+  {
+    label: "08/03",
+    amount: 5000,
+  },
+  {
+    label: "08/04",
+    amount: 0,
+  },
+  {
+    label: "08/05",
+    amount: 2000,
+  },
+];
+
+const expenseTrendData = [
+  {
+    label: "08/01",
+    amount: 1200,
+  },
+  {
+    label: "08/02",
+    amount: 500,
+  },
+  {
+    label: "08/03",
+    amount: 2500,
+  },
+  {
+    label: "08/04",
+    amount: 800,
+  },
+  {
+    label: "08/05",
+    amount: 1500,
+  },
+];
+
+const frequencyData = [
+  {
+    label: "08/01",
+    count: 3,
+  },
+  {
+    label: "08/02",
+    count: 5,
+  },
+  {
+    label: "08/03",
+    count: 2,
+  },
+  {
+    label: "08/04",
+    count: 8,
+  },
+  {
+    label: "08/05",
+    count: 4,
   },
 ];
 
@@ -107,9 +177,11 @@ function Dashboard() {
             <div className="card-body">
               <h5 className="card-title">收入趨勢</h5>
 
-              <div className="py-5 text-center text-body-secondary">
-                Line Chart
-              </div>
+              <TrendLineChart
+                data={incomeTrendData}
+                label="收入"
+                valueKey="amount"
+              />
             </div>
           </div>
         </div>
@@ -119,9 +191,11 @@ function Dashboard() {
             <div className="card-body">
               <h5 className="card-title">支出趨勢</h5>
 
-              <div className="py-5 text-center text-body-secondary">
-                Line Chart
-              </div>
+              <TrendLineChart
+                data={expenseTrendData}
+                label="支出"
+                valueKey="amount"
+              />
             </div>
           </div>
         </div>
@@ -129,11 +203,13 @@ function Dashboard() {
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-body">
-              <h5 className="card-title">使用頻率</h5>
-
-              <div className="py-5 text-center text-body-secondary">
-                Line Chart
-              </div>
+              <ChartCard title="使用頻率">
+                <TrendLineChart
+                  data={frequencyData}
+                  label="記帳次數"
+                  valueKey="count"
+                />
+              </ChartCard>
             </div>
           </div>
         </div>
