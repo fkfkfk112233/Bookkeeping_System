@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
+import backend.dto.dashboard.FrequencyResponse;
 import backend.dto.dashboard.TrendResponse;
 import backend.service.DashboardService;
 
@@ -96,6 +97,44 @@ public class DashboardController {
 
         List<TrendResponse> response =
                 dashboardService.getExpenseTrend(
+                        startDate,
+                        endDate
+                );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/income/trend")
+    public ResponseEntity<List<TrendResponse>> getIncomeTrend(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        List<TrendResponse> response =
+                dashboardService.getIncomeTrend(
+                        startDate,
+                        endDate
+                );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/frequency")
+    public ResponseEntity<List<FrequencyResponse>> getFrequency(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        List<FrequencyResponse> response =
+                dashboardService.getFrequency(
                         startDate,
                         endDate
                 );
