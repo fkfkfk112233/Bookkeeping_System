@@ -1,5 +1,38 @@
 import DateTimeCard from "../components/DateTimeCard";
 import SummaryCard from "../components/SummaryCard";
+import ChartCard from "../components/ChartCard";
+import IncomeExpensePieChart from "../components/IncomeExpensePieChart";
+
+const expenseData = [
+  {
+    categoryId: 1,
+    categoryName: "飲食",
+    amount: 5000,
+  },
+  {
+    categoryId: 2,
+    categoryName: "交通",
+    amount: 2000,
+  },
+  {
+    categoryId: 3,
+    categoryName: "娛樂",
+    amount: 1500,
+  },
+];
+
+const incomeData = [
+  {
+    categoryId: 4,
+    categoryName: "薪資",
+    amount: 30000,
+  },
+  {
+    categoryId: 5,
+    categoryName: "獎金",
+    amount: 5000,
+  },
+];
 
 function Dashboard() {
   return (
@@ -58,27 +91,15 @@ function Dashboard() {
 
       <div className="row g-4">
         <div className="col-12 col-xl-6">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">收入分類</h5>
-
-              <div className="py-5 text-center text-body-secondary">
-                Pie Chart
-              </div>
-            </div>
-          </div>
+          <ChartCard title="收入分類">
+            <IncomeExpensePieChart data={incomeData} />
+          </ChartCard>
         </div>
 
         <div className="col-12 col-xl-6">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">支出分類</h5>
-
-              <div className="py-5 text-center text-body-secondary">
-                Pie Chart
-              </div>
-            </div>
-          </div>
+          <ChartCard title="支出分類">
+            <IncomeExpensePieChart data={expenseData} />
+          </ChartCard>
         </div>
 
         <div className="col-12 col-xl-6">
