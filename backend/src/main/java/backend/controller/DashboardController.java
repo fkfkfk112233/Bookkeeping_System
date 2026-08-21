@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
+import backend.dto.dashboard.TrendResponse;
 import backend.service.DashboardService;
 
 @RestController
@@ -76,6 +77,25 @@ public class DashboardController {
 
         List<CategoryAmountResponse> response =
                 dashboardService.getIncome(
+                        startDate,
+                        endDate
+                );
+
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/expense/trend")
+    public ResponseEntity<List<TrendResponse>> getExpenseTrend(
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate) {
+
+        List<TrendResponse> response =
+                dashboardService.getExpenseTrend(
                         startDate,
                         endDate
                 );
