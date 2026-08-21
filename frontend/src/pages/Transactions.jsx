@@ -1,65 +1,207 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
+import TransactionModal from "../components/TransactionModal";
+import { getTransactions } from "../services/transactionApi";
 
 function Transactions() {
-  const [transactions] = useState([
+  const [showModal, setShowModal] = useState(false);
+
+  const [modalType, setModalType] = useState("EXPENSE");
+
+  const [editingTransaction, setEditingTransaction] = useState(null);
+
+  const [categories] = useState([
     {
       id: 1,
+      name: "飲食",
       type: "EXPENSE",
-      categoryName: "飲食",
-      amount: 120,
-      paymentMethod: "CASH",
-      description: "午餐",
-      transactionDate: "2026-08-21",
     },
     {
       id: 2,
+      name: "交通",
       type: "EXPENSE",
-      categoryName: "交通",
-      amount: 50,
-      paymentMethod: "CASH",
-      description: "捷運",
-      transactionDate: "2026-08-21",
     },
     {
       id: 3,
+      name: "薪資",
       type: "INCOME",
-      categoryName: "薪資",
-      amount: 30000,
-      paymentMethod: "CASH",
-      description: "月薪",
-      transactionDate: "2026-08-21",
     },
   ]);
 
+  const [transactions, setTransactions] = useState([]);
+
   const handleEdit = (transaction) => {
-    console.log("Edit:", transaction);
+    setEditingTransaction(transaction);
+
+    setModalType(transaction.type);
+
+    setShowModal(true);
   };
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState("");
 
   const handleDelete = (transaction) => {
     console.log("Delete:", transaction);
   };
+
+  const handleAddIncome = () => {
+    setEditingTransaction(null);
+
+    setModalType("INCOME");
+
+    setShowModal(true);
+  };
+
+  const handleAddExpense = () => {
+    setEditingTransaction(null);
+
+    setModalType("EXPENSE");
+
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+
+    setEditingTransaction(null);
+  };
+
+  const handleSubmit = (data) => {
+    console.log("Transaction submit:", data);
+
+    handleCloseModal();
+  };
+
+  const [dateRange, setDateRange] = useState("month");
+
+  const getDateRange = () => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+
+    const day = String(now.getDate()).padStart(2, "0");
+
+    if (dateRange === "today") {
+      const date = `${year}-${month}-${day}`;
+
+      return {
+        startDate: date,
+        endDate: date,
+      };
+    }
+
+    if (dateRange === "week") {
+      const currentDay = now.getDay();
+
+      const diff = currentDay === 0 ? -6 : 1 - currentDay;
+
+      const start = new Date(now);
+
+      start.setDate(now.getDate() + diff);
+
+      const end = new Date(start);
+
+      end.setDate(start.getDate() + 6);
+
+      return {
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+      };
+    }
+
+    const firstDay = `${year}-${month}-01`;
+
+    const lastDay = new Date(year, now.getMonth() + 1, 0);
+
+    return {
+      startDate: firstDay,
+      endDate: formatDate(lastDay),
+    };
+  };
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const { startDate, endDate } = getDateRange();
+
+        const response = await getTransactions(startDate, endDate);
+
+        setTransactions(response.data);
+      } catch (error) {
+        console.error("Failed to fetch transactions:", error);
+
+        setError("無法取得交易紀錄");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [dateRange]);
 
   return (
     <div className="container-fluid px-4 py-4">
       <div className="mb-4">
         <h1 className="mb-1">記帳</h1>
 
+        {loading && <div className="alert alert-info">載入交易紀錄中...</div>}
+        {error && <div className="alert alert-danger">{error}</div>}
+
         <p className="text-body-secondary mb-0">管理你的收入與支出</p>
       </div>
-
       <div className="card shadow-sm">
         <div className="card-body">
           <div className="btn-group mb-4">
-            <button type="button" className="btn btn-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "today"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("today")}
+            >
               今日
             </button>
 
-            <button type="button" className="btn btn-outline-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "week"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("week")}
+            >
               本週
             </button>
 
-            <button type="button" className="btn btn-outline-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "month"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("month")}
+            >
               本月
             </button>
           </div>
@@ -71,16 +213,32 @@ function Transactions() {
           />
 
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" className="btn btn-success">
+            <button
+              type="button"
+              className="btn btn-success"
+              onClick={handleAddIncome}
+            >
               ＋ 新增收入
             </button>
 
-            <button type="button" className="btn btn-danger">
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={handleAddExpense}
+            >
               ＋ 新增支出
             </button>
           </div>
         </div>
       </div>
+      <TransactionModal
+        show={showModal}
+        type={modalType}
+        transaction={editingTransaction}
+        categories={categories}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }
