@@ -8,6 +8,7 @@ import backend.dto.transaction.TransactionRequest;
 import backend.dto.transaction.TransactionResponse;
 import backend.entity.Category;
 import backend.entity.Transaction;
+import backend.exception.ResourceNotFoundException;
 import backend.repository.CategoryRepository;
 import backend.repository.TransactionRepository;
 
@@ -98,7 +99,7 @@ public class TransactionService {
 
         Transaction transaction = transactionRepository
                 .findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         return toResponse(transaction);
     }
@@ -109,11 +110,11 @@ public class TransactionService {
 
         Transaction transaction = transactionRepository
                 .findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         Category category = categoryRepository
                 .findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         transaction.setCategory(category);
         transaction.setType(request.getType());
