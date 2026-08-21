@@ -97,4 +97,48 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        @Param("startDateTime") LocalDateTime startDateTime,
 	        @Param("endDateTime") LocalDateTime endDateTime
 	);
+	
+	@Query(value = """
+	        SELECT
+	            strftime('%Y-%m-%d', transaction_date) AS label,
+	            COUNT(id) AS count
+	        FROM transactions
+	        WHERE transaction_date BETWEEN :startDateTime AND :endDateTime
+	        GROUP BY strftime('%Y-%m-%d', transaction_date)
+	        ORDER BY label
+	        """, nativeQuery = true)
+	List<Object[]> getDailyFrequency(
+	        @Param("startDateTime") LocalDateTime startDateTime,
+	        @Param("endDateTime") LocalDateTime endDateTime
+	);
+	
+	//每小時 Frequency
+	@Query(value = """
+	        SELECT
+	            strftime('%Y-%m-%d %H:00', transaction_date) AS label,
+	            COUNT(id) AS count
+	        FROM transactions
+	        WHERE transaction_date BETWEEN :startDateTime AND :endDateTime
+	        GROUP BY strftime('%Y-%m-%d %H', transaction_date)
+	        ORDER BY label
+	        """, nativeQuery = true)
+	List<Object[]> getHourlyFrequency(
+	        @Param("startDateTime") LocalDateTime startDateTime,
+	        @Param("endDateTime") LocalDateTime endDateTime
+	);
+	
+	//每月 Frequency
+	@Query(value = """
+	        SELECT
+	            strftime('%Y-%m', transaction_date) AS label,
+	            COUNT(id) AS count
+	        FROM transactions
+	        WHERE transaction_date BETWEEN :startDateTime AND :endDateTime
+	        GROUP BY strftime('%Y-%m', transaction_date)
+	        ORDER BY label
+	        """, nativeQuery = true)
+	List<Object[]> getMonthlyFrequency(
+	        @Param("startDateTime") LocalDateTime startDateTime,
+	        @Param("endDateTime") LocalDateTime endDateTime
+	);
 }
