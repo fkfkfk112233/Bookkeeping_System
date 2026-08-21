@@ -81,4 +81,20 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        @Param("startDateTime") LocalDateTime startDateTime,
 	        @Param("endDateTime") LocalDateTime endDateTime
 	);
+	
+	@Query(value = """
+	        SELECT
+	            strftime('%Y-%m', transaction_date) AS label,
+	            COALESCE(SUM(amount), 0) AS amount
+	        FROM transactions
+	        WHERE type = :type
+	        AND transaction_date BETWEEN :startDateTime AND :endDateTime
+	        GROUP BY strftime('%Y-%m', transaction_date)
+	        ORDER BY label
+	        """, nativeQuery = true)
+	List<Object[]> getMonthlyTrend(
+	        @Param("type") String type,
+	        @Param("startDateTime") LocalDateTime startDateTime,
+	        @Param("endDateTime") LocalDateTime endDateTime
+	);
 }
