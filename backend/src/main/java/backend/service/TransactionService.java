@@ -25,16 +25,6 @@ public class TransactionService {
         this.categoryRepository = categoryRepository;
     }
     
-    public List<TransactionResponse> getAllTransactions() {
-
-        List<Transaction> transactions =
-                transactionRepository.findAll();
-
-        return transactions.stream()
-                .map(this::toResponse)
-                .toList();
-    }
-    
     private TransactionResponse toResponse(Transaction transaction) {
 
         TransactionResponse response = new TransactionResponse();
@@ -54,6 +44,16 @@ public class TransactionService {
                 transaction.getTransactionDate());
 
         return response;
+    }
+    
+    public List<TransactionResponse> getAllTransactions() {
+
+        List<Transaction> transactions =
+                transactionRepository.findAll();
+
+        return transactions.stream()
+                .map(this::toResponse)
+                .toList();
     }
     
     public TransactionResponse createTransaction(

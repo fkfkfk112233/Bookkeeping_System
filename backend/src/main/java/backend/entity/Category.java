@@ -17,8 +17,8 @@ public class Category {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "category_id", nullable = true)
+    private Category category;
 
     private String name;
 
@@ -32,7 +32,7 @@ public class Category {
     }
 
     public Category(User user, String name, String type) {
-        this.user = user;
+        this.category = category;
         this.name = name;
         this.type = type;
     }
@@ -41,12 +41,12 @@ public class Category {
         return id;
     }
 
-    public User getUser() {
-        return user;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public String getName() {
