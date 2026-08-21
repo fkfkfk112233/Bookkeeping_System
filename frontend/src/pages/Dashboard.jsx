@@ -1,110 +1,105 @@
+import { useEffect, useState } from "react";
+
 import DateTimeCard from "../components/DateTimeCard";
 import SummaryCard from "../components/SummaryCard";
 import ChartCard from "../components/ChartCard";
 import IncomeExpensePieChart from "../components/IncomeExpensePieChart";
 import TrendLineChart from "../components/TrendLineChart";
-
-const expenseData = [
-  {
-    categoryId: 1,
-    categoryName: "飲食",
-    amount: 5000,
-  },
-  {
-    categoryId: 2,
-    categoryName: "交通",
-    amount: 2000,
-  },
-  {
-    categoryId: 3,
-    categoryName: "娛樂",
-    amount: 1500,
-  },
-];
-
-const incomeData = [
-  {
-    categoryId: 4,
-    categoryName: "薪資",
-    amount: 30000,
-  },
-  {
-    categoryId: 5,
-    categoryName: "獎金",
-    amount: 5000,
-  },
-];
-
-const incomeTrendData = [
-  {
-    label: "08/01",
-    amount: 30000,
-  },
-  {
-    label: "08/02",
-    amount: 0,
-  },
-  {
-    label: "08/03",
-    amount: 5000,
-  },
-  {
-    label: "08/04",
-    amount: 0,
-  },
-  {
-    label: "08/05",
-    amount: 2000,
-  },
-];
-
-const expenseTrendData = [
-  {
-    label: "08/01",
-    amount: 1200,
-  },
-  {
-    label: "08/02",
-    amount: 500,
-  },
-  {
-    label: "08/03",
-    amount: 2500,
-  },
-  {
-    label: "08/04",
-    amount: 800,
-  },
-  {
-    label: "08/05",
-    amount: 1500,
-  },
-];
-
-const frequencyData = [
-  {
-    label: "08/01",
-    count: 3,
-  },
-  {
-    label: "08/02",
-    count: 5,
-  },
-  {
-    label: "08/03",
-    count: 2,
-  },
-  {
-    label: "08/04",
-    count: 8,
-  },
-  {
-    label: "08/05",
-    count: 4,
-  },
-];
+import {
+  getDashboardSummary,
+  getDashboardIncome,
+  getDashboardExpense,
+  getDashboardIncomeTrend,
+  getDashboardExpenseTrend,
+  getDashboardFrequency,
+} from "../services/dashboardApi";
 
 function Dashboard() {
+  const [summary, setSummary] = useState({
+    income: 0,
+    expense: 0,
+    balance: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState("");
+
+  const getCurrentMonthRange = () => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+
+    const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+
+    return {
+      startDate: `${year}-${month}-01`,
+      endDate: `${year}-${month}-${String(lastDay).padStart(2, "0")}`,
+    };
+  };
+
+  const [incomeData, setIncomeData] = useState([]);
+
+  const [expenseData, setExpenseData] = useState([]);
+
+  const [incomeTrendData, setIncomeTrendData] = useState([]);
+
+  const [expenseTrendData, setExpenseTrendData] = useState([]);
+
+  const [frequencyData, setFrequencyData] = useState([]);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const { startDate, endDate } = getCurrentMonthRange();
+
+        const [
+          summaryResponse,
+          incomeResponse,
+          expenseResponse,
+          incomeTrendResponse,
+          expenseTrendResponse,
+          frequencyResponse,
+        ] = await Promise.all([
+          getDashboardSummary(startDate, endDate),
+
+          getDashboardIncome(startDate, endDate),
+
+          getDashboardExpense(startDate, endDate),
+
+          getDashboardIncomeTrend(startDate, endDate),
+
+          getDashboardExpenseTrend(startDate, endDate),
+
+          getDashboardFrequency(startDate, endDate),
+        ]);
+
+        setSummary(summaryResponse.data);
+
+        setIncomeData(incomeResponse.data);
+
+        setExpenseData(expenseResponse.data);
+
+        setIncomeTrendData(incomeTrendResponse.data);
+
+        setExpenseTrendData(expenseTrendResponse.data);
+
+        setFrequencyData(frequencyResponse.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard:", error);
+
+        setError("無法取得 Dashboard 資料");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
   return (
     <div className="container-fluid px-4 py-4">
       <div className="mb-4">
@@ -112,6 +107,12 @@ function Dashboard() {
 
         <p className="text-body-secondary mb-0">個人財務概況</p>
       </div>
+
+      {loading && (
+        <div className="alert alert-info">載入 Dashboard 資料中...</div>
+      )}
+
+      {error && <div className="alert alert-danger">{error}</div>}
 
       {/* Summary Cards */}
 
@@ -121,15 +122,24 @@ function Dashboard() {
         </div>
 
         <div className="col-12 col-md-6 col-xl-3">
-          <SummaryCard title="本月收入" value="$0" />
+          <SummaryCard
+            title="本月收入"
+            value={`$${summary.income.toLocaleString()}`}
+          />
         </div>
 
         <div className="col-12 col-md-6 col-xl-3">
-          <SummaryCard title="本月支出" value="$0" />
+          <SummaryCard
+            title="本月支出"
+            value={`$${summary.expense.toLocaleString()}`}
+          />
         </div>
 
         <div className="col-12 col-md-6 col-xl-3">
-          <SummaryCard title="本月結餘" value="$0" />
+          <SummaryCard
+            title="本月結餘"
+            value={`$${summary.balance.toLocaleString()}`}
+          />
         </div>
       </div>
 
