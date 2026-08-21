@@ -1,69 +1,46 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
+  return (
+    <nav className="navbar navbar-expand-lg bg-body-tertiary">
+      <div className="container">
+        <NavLink className="navbar-brand" to="/">
+          Bookkeeping System
+        </NavLink>
 
-    return (
-        <nav className="navbar navbar-expand-lg bg-body-tertiary">
-            <div className="container">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
 
-                <NavLink
-                    className="navbar-brand"
-                    to="/"
-                >
-                    Bookkeeping System
-                </NavLink>
+        <div className="collapse navbar-collapse" id="navbarContent">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/">
+                Dashboard
+              </NavLink>
+            </li>
 
-                <button
-                    className="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarContent"
-                >
-                    <span className="navbar-toggler-icon"></span>
-                </button>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/transactions">
+                記帳
+              </NavLink>
+            </li>
 
-                <div
-                    className="collapse navbar-collapse"
-                    id="navbarContent"
-                >
-
-                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-
-                        <li className="nav-item">
-                            <NavLink
-                                className="nav-link"
-                                to="/"
-                            >
-                                Dashboard
-                            </NavLink>
-                        </li>
-
-                        <li className="nav-item">
-                            <NavLink
-                                className="nav-link"
-                                to="/transactions"
-                            >
-                                記帳
-                            </NavLink>
-                        </li>
-
-                        <li className="nav-item">
-                            <NavLink
-                                className="nav-link"
-                                to="/categories"
-                            >
-                                分類管理
-                            </NavLink>
-                        </li>
-
-                    </ul>
-
-                </div>
-
-            </div>
-        </nav>
-    )
-
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/categories">
+                分類管理
+              </NavLink>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  );
 }
 
-export default Navbar
+export default Navbar;
