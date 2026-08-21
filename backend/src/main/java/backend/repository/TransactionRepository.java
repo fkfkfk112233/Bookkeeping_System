@@ -1,7 +1,6 @@
 package backend.repository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,8 +26,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        """)
 	BigDecimal sumAmountByTypeAndDateBetween(
 	        @Param("type") TransactionType type,
-	        @Param("startDate") LocalDate startDate,
-	        @Param("endDate") LocalDate endDate
+	        @Param("startDate") LocalDateTime startDate,
+	        @Param("endDate") LocalDateTime endDate
 	);
 	
 	@Query("""
@@ -46,8 +45,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        """)
 	List<CategoryAmountResponse> sumAmountGroupByCategory(
 	        @Param("type") TransactionType type,
-	        @Param("startDate") LocalDate startDate,
-	        @Param("endDate") LocalDate endDate
+	        @Param("startDate") LocalDateTime startDate,
+	        @Param("endDate") LocalDateTime endDate
 	);
 	
 	@Query(value = """
@@ -112,7 +111,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        @Param("endDateTime") LocalDateTime endDateTime
 	);
 	
-	//每小時 Frequency
+	// 每小時 Frequency
 	@Query(value = """
 	        SELECT
 	            strftime('%Y-%m-%d %H:00', transaction_date) AS label,
@@ -127,7 +126,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 	        @Param("endDateTime") LocalDateTime endDateTime
 	);
 	
-	//每月 Frequency
+	// 每月 Frequency
 	@Query(value = """
 	        SELECT
 	            strftime('%Y-%m', transaction_date) AS label,
