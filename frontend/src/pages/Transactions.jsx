@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
 import TransactionModal from "../components/TransactionModal";
 import {
@@ -9,28 +9,123 @@ import {
 } from "../services/transactionApi";
 import { getCategories } from "../services/categoryApi";
 
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getDateRange = (dateRange) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  if (dateRange === "today") {
+    const date = `${year}-${month}-${day}`;
+
+    return {
+      startDate: date,
+      endDate: date,
+    };
+  }
+
+  if (dateRange === "week") {
+    const currentDay = now.getDay();
+    const diff = currentDay === 0 ? -6 : 1 - currentDay;
+
+    const start = new Date(now);
+    start.setDate(now.getDate() + diff);
+
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(end),
+    };
+  }
+
+  const firstDay = `${year}-${month}-01`;
+  const lastDay = new Date(year, now.getMonth() + 1, 0);
+
+  return {
+    startDate: firstDay,
+    endDate: formatDate(lastDay),
+  };
+};
+
 function Transactions() {
+  // =========================
+  // State
+  // =========================
+
   const [showModal, setShowModal] = useState(false);
-
   const [modalType, setModalType] = useState("EXPENSE");
-
   const [editingTransaction, setEditingTransaction] = useState(null);
 
   const [categories, setCategories] = useState([]);
-
   const [transactions, setTransactions] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [dateRange, setDateRange] = useState("month");
+
+  // =========================
+  // Fetch Transactions
+  // =========================
+
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const { startDate, endDate } = getDateRange(dateRange);
+
+      const response = await getTransactions(startDate, endDate);
+
+      setTransactions(response.data);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+
+      setError(
+        error.response?.data?.message || "無法取得交易紀錄",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [dateRange]);
+
+  // =========================
+  // Fetch Categories
+  // =========================
+
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+
+      setError(
+        error.response?.data?.message || "無法取得分類",
+      );
+    }
+  };
+
+  // =========================
+  // Transaction Handlers
+  // =========================
 
   const handleEdit = (transaction) => {
     setEditingTransaction(transaction);
-
     setModalType(transaction.type);
-
     setShowModal(true);
   };
-
-  const [loading, setLoading] = useState(true);
-
-  const [error, setError] = useState("");
 
   const handleDelete = async (transaction) => {
     const confirmed = window.confirm(
@@ -48,29 +143,26 @@ function Transactions() {
     } catch (error) {
       console.error("Failed to delete transaction:", error);
 
-      setError("刪除交易失敗");
+      setError(
+        error.response?.data?.message || "刪除交易失敗",
+      );
     }
   };
 
   const handleAddIncome = () => {
     setEditingTransaction(null);
-
     setModalType("INCOME");
-
     setShowModal(true);
   };
 
   const handleAddExpense = () => {
     setEditingTransaction(null);
-
     setModalType("EXPENSE");
-
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-
     setEditingTransaction(null);
   };
 
@@ -94,99 +186,19 @@ function Transactions() {
     } catch (error) {
       console.error("Failed to save transaction:", error);
 
-      setError(editingTransaction ? "修改交易失敗" : "新增交易失敗");
+      const message =
+        error.response?.data?.message ||
+        (editingTransaction
+          ? "修改交易失敗"
+          : "新增交易失敗");
+
+      setError(message);
     }
   };
 
-  const [dateRange, setDateRange] = useState("month");
-
-  const getDateRange = () => {
-    const now = new Date();
-
-    const year = now.getFullYear();
-
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-
-    const day = String(now.getDate()).padStart(2, "0");
-
-    if (dateRange === "today") {
-      const date = `${year}-${month}-${day}`;
-
-      return {
-        startDate: date,
-        endDate: date,
-      };
-    }
-
-    if (dateRange === "week") {
-      const currentDay = now.getDay();
-
-      const diff = currentDay === 0 ? -6 : 1 - currentDay;
-
-      const start = new Date(now);
-
-      start.setDate(now.getDate() + diff);
-
-      const end = new Date(start);
-
-      end.setDate(start.getDate() + 6);
-
-      return {
-        startDate: formatDate(start),
-        endDate: formatDate(end),
-      };
-    }
-
-    const firstDay = `${year}-${month}-01`;
-
-    const lastDay = new Date(year, now.getMonth() + 1, 0);
-
-    return {
-      startDate: firstDay,
-      endDate: formatDate(lastDay),
-    };
-  };
-
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  };
-
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const { startDate, endDate } = getDateRange();
-
-      const response = await getTransactions(startDate, endDate);
-
-      setTransactions(response.data);
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-
-      setError("無法取得交易紀錄");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await getCategories();
-
-      setCategories(response.data);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-
-      setError("無法取得分類");
-    }
-  };
+  // =========================
+  // Filter Transactions
+  // =========================
 
   const incomeTransactions = transactions.filter(
     (transaction) => transaction.type === "INCOME",
@@ -196,26 +208,48 @@ function Transactions() {
     (transaction) => transaction.type === "EXPENSE",
   );
 
+  // =========================
+  // Effects
+  // =========================
+
   useEffect(() => {
     fetchTransactions();
-  }, [dateRange]);
+  }, [fetchTransactions]);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // =========================
+  // Render
+  // =========================
+
   return (
-    <div className="container-fluid px-4 py-4">
-      <div className="mb-4">
+    <div className="container-fluid px-4 py-4 page-container">
+      <div className="page-header">
         <h1 className="mb-1">記帳</h1>
 
-        {loading && <div className="alert alert-info">載入交易紀錄中...</div>}
-        {error && <div className="alert alert-danger">{error}</div>}
+        {loading && (
+          <div className="alert alert-info">
+            載入交易紀錄中...
+          </div>
+        )}
 
-        <p className="text-body-secondary mb-0">管理你的收入與支出</p>
+        {error && (
+          <div className="alert alert-danger">
+            {error}
+          </div>
+        )}
+
+        <p className="text-body-secondary mb-0">
+          管理你的收入與支出
+        </p>
       </div>
+
       <div className="card shadow-sm">
         <div className="card-body">
+
+          {/* 日期範圍 */}
           <div className="btn-group mb-4">
             <button
               type="button"
@@ -284,6 +318,7 @@ function Transactions() {
             </div>
           </div>
 
+          {/* 新增按鈕 */}
           <div className="d-flex justify-content-end gap-2 mt-4">
             <button
               type="button"
@@ -301,8 +336,11 @@ function Transactions() {
               ＋ 新增支出
             </button>
           </div>
+
         </div>
       </div>
+
+      {/* Modal */}
       <TransactionModal
         show={showModal}
         type={modalType}
