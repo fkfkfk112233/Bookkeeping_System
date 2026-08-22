@@ -5,6 +5,7 @@ import {
   getTransactions,
   createTransaction,
   updateTransaction,
+  deleteTransaction,
 } from "../services/transactionApi";
 import { getCategories } from "../services/categoryApi";
 
@@ -31,8 +32,24 @@ function Transactions() {
 
   const [error, setError] = useState("");
 
-  const handleDelete = (transaction) => {
-    console.log("Delete:", transaction);
+  const handleDelete = async (transaction) => {
+    const confirmed = window.confirm(
+      `確定要刪除「${transaction.description || "這筆交易"}」嗎？`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteTransaction(transaction.id);
+
+      await fetchTransactions();
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+
+      setError("刪除交易失敗");
+    }
   };
 
   const handleAddIncome = () => {
