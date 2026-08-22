@@ -31,8 +31,15 @@ public class TransactionService {
 		TransactionResponse response = new TransactionResponse();
 
 		response.setId(transaction.getId());
-		response.setCategoryId(transaction.getCategory().getId());
-		response.setCategoryName(transaction.getCategory().getName());
+
+		if (transaction.getCategory() != null) {
+			response.setCategoryId(transaction.getCategory().getId());
+			response.setCategoryName(transaction.getCategory().getName());
+		} else {
+			response.setCategoryId(null);
+			response.setCategoryName(null);
+		}
+
 		response.setType(transaction.getType());
 		response.setAmount(transaction.getAmount());
 		response.setPaymentMethod(transaction.getPaymentMethod());
