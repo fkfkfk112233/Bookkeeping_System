@@ -8,21 +8,26 @@ import backend.dto.category.CategoryRequest;
 import backend.dto.category.CategoryResponse;
 import backend.entity.Category;
 import backend.entity.Transaction;
+import backend.entity.User;
 import backend.repository.CategoryRepository;
 import backend.repository.TransactionRepository;
+import backend.repository.UserRepository;
 
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
     public CategoryService(
             CategoryRepository categoryRepository,
-            TransactionRepository transactionRepository) {
+            TransactionRepository transactionRepository,
+            UserRepository userRepository) {
 
         this.categoryRepository = categoryRepository;
         this.transactionRepository = transactionRepository;
+        this.userRepository = userRepository;
     }
     
     private CategoryResponse toResponse(Category category) {
@@ -57,19 +62,17 @@ public class CategoryService {
 
     public CategoryResponse createCategory(CategoryRequest request) {
 
+        User user = userRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Test user not found"));
+
         Category category = new Category();
 
+        category.setUser(user);
         category.setName(request.getName());
         category.setType(request.getType());
 
         Category savedCategory =
                 categoryRepository.save(category);
-
-        CategoryResponse response = new CategoryResponse();
-
-        response.setId(savedCategory.getId());
-        response.setName(savedCategory.getName());
-        response.setType(savedCategory.getType());
 
         return toResponse(savedCategory);
     }
