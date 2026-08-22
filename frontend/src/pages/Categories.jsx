@@ -33,9 +33,16 @@ function Categories() {
   }, []);
 
   const handleSaveCategory = async () => {
+    const trimmedName = categoryName.trim();
+
+    if (!trimmedName) {
+      setError("分類名稱不可為空白");
+      return;
+    }
+
     try {
       const data = {
-        name: categoryName,
+        name: trimmedName,
         type: categoryType,
       };
 
@@ -92,7 +99,8 @@ function Categories() {
         </div>
 
         <div className="card-body p-0">
-          <table className="table table-striped table-hover mb-0">
+          <div className="table-responsive">
+            <table className="table table-striped table-hover align-middle mb-0 text-nowrap">
             <thead>
               <tr>
                 <th>ID</th>
@@ -141,16 +149,17 @@ function Categories() {
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid px-4 py-4 page-container">
       {/* 標題 + 新增按鈕 */}
-      <div className="d-flex justify-content-between align-items-center">
+      <div className="page-header d-flex flex-wrap justify-content-between align-items-center gap-3">
         <h1 className="mb-0">分類管理</h1>
 
         <button
@@ -211,6 +220,7 @@ function Categories() {
                     type="text"
                     className="form-control"
                     id="categoryName"
+                    required
                     value={categoryName}
                     onChange={(e) => setCategoryName(e.target.value)}
                     placeholder="請輸入分類名稱"
