@@ -1,5 +1,6 @@
 package backend.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +25,19 @@ public class TransactionService {
 
 		this.transactionRepository = transactionRepository;
 		this.categoryRepository = categoryRepository;
+	}
+
+	private void validateTransactionRequest(TransactionRequest request, Category category) {
+
+		if (request.getAmount() == null
+				|| request.getAmount().compareTo(BigDecimal.TEN) < 0
+				|| request.getAmount().remainder(BigDecimal.TEN).compareTo(BigDecimal.ZERO) != 0) {
+			throw new IllegalArgumentException("金額必須為 10 以上且為 10 的倍數");
+		}
+
+		if (request.getType() != category.getType()) {
+			throw new IllegalArgumentException("交易類型與分類類型不一致");
+		}
 	}
 
 	private TransactionResponse toResponse(Transaction transaction) {
@@ -65,7 +79,9 @@ public class TransactionService {
 	public TransactionResponse createTransaction(TransactionRequest request) {
 
 		Category category = categoryRepository.findById(request.getCategoryId())
-				.orElseThrow(() -> new RuntimeException("Category not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+		validateTransactionRequest(request, category);
 
 		Transaction transaction = new Transaction();
 
@@ -107,6 +123,8 @@ public class TransactionService {
 
 		Category category = categoryRepository.findById(request.getCategoryId())
 				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+		validateTransactionRequest(request, category);
 
 		transaction.setCategory(category);
 		transaction.setType(request.getType());
