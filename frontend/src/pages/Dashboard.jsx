@@ -24,6 +24,72 @@ function Dashboard() {
 
   const [error, setError] = useState("");
 
+  const [dateRange, setDateRange] = useState("month");
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const getDateRange = () => {
+    const now = new Date();
+
+    const year = now.getFullYear();
+
+    const month = now.getMonth();
+
+    if (dateRange === "today") {
+      const date = formatDate(now);
+
+      return {
+        startDate: date,
+        endDate: date,
+      };
+    }
+
+    if (dateRange === "week") {
+      const currentDay = now.getDay();
+
+      const diff = currentDay === 0 ? -6 : 1 - currentDay;
+
+      const start = new Date(now);
+
+      start.setDate(now.getDate() + diff);
+
+      const end = new Date(start);
+
+      end.setDate(start.getDate() + 6);
+
+      return {
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+      };
+    }
+
+    if (dateRange === "year") {
+      return {
+        startDate: `${year}-01-01`,
+        endDate: `${year}-12-31`,
+      };
+    }
+
+    // month
+
+    const start = new Date(year, month, 1);
+
+    const end = new Date(year, month + 1, 0);
+
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(end),
+    };
+  };
+
   const getCurrentMonthRange = () => {
     const now = new Date();
 
@@ -54,7 +120,7 @@ function Dashboard() {
         setLoading(true);
         setError("");
 
-        const { startDate, endDate } = getCurrentMonthRange();
+        const { startDate, endDate } = getDateRange();
 
         const [
           summaryResponse,
@@ -98,7 +164,7 @@ function Dashboard() {
     };
 
     fetchDashboard();
-  }, []);
+  }, [dateRange]);
 
   return (
     <div className="container-fluid px-4 py-4">
@@ -148,19 +214,51 @@ function Dashboard() {
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <div className="btn-group">
-            <button type="button" className="btn btn-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "today"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("today")}
+            >
               今日
             </button>
 
-            <button type="button" className="btn btn-outline-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "week"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("week")}
+            >
               本週
             </button>
 
-            <button type="button" className="btn btn-outline-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "month"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("month")}
+            >
               本月
             </button>
 
-            <button type="button" className="btn btn-outline-primary">
+            <button
+              type="button"
+              className={
+                dateRange === "year"
+                  ? "btn btn-primary"
+                  : "btn btn-outline-primary"
+              }
+              onClick={() => setDateRange("year")}
+            >
               本年
             </button>
           </div>
