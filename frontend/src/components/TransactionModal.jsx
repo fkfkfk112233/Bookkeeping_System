@@ -134,8 +134,8 @@ function TransactionModal({
                   className="form-control"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
-                  min="0.01"
-                  step="0.01"
+                  min="10"
+                  step="10"
                   required
                 />
               </div>
