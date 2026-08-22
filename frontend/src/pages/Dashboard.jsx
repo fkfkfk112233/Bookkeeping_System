@@ -14,6 +14,56 @@ import {
   getDashboardFrequency,
 } from "../services/dashboardApi";
 
+const formatDate = (date) => {
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const getDateRange = (dateRange) => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  if (dateRange === "today") {
+    const date = formatDate(now);
+    return { startDate: date, endDate: date };
+  }
+
+  if (dateRange === "week") {
+    const currentDay = now.getDay();
+    const diff = currentDay === 0 ? -6 : 1 - currentDay;
+    const start = new Date(now);
+    start.setDate(now.getDate() + diff);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(end),
+    };
+  }
+
+  if (dateRange === "year") {
+    return {
+      startDate: `${year}-01-01`,
+      endDate: `${year}-12-31`,
+    };
+  }
+
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0);
+
+  return {
+    startDate: formatDate(start),
+    endDate: formatDate(end),
+  };
+};
+
 function Dashboard() {
   const [summary, setSummary] = useState({
     income: 0,
@@ -26,84 +76,17 @@ function Dashboard() {
 
   const [dateRange, setDateRange] = useState("month");
 
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  };
-
-  const getDateRange = () => {
-    const now = new Date();
-
-    const year = now.getFullYear();
-
-    const month = now.getMonth();
-
-    if (dateRange === "today") {
-      const date = formatDate(now);
-
-      return {
-        startDate: date,
-        endDate: date,
-      };
-    }
-
-    if (dateRange === "week") {
-      const currentDay = now.getDay();
-
-      const diff = currentDay === 0 ? -6 : 1 - currentDay;
-
-      const start = new Date(now);
-
-      start.setDate(now.getDate() + diff);
-
-      const end = new Date(start);
-
-      end.setDate(start.getDate() + 6);
-
-      return {
-        startDate: formatDate(start),
-        endDate: formatDate(end),
-      };
-    }
-
-    if (dateRange === "year") {
-      return {
-        startDate: `${year}-01-01`,
-        endDate: `${year}-12-31`,
-      };
-    }
-
-    // month
-
-    const start = new Date(year, month, 1);
-
-    const end = new Date(year, month + 1, 0);
-
-    return {
-      startDate: formatDate(start),
-      endDate: formatDate(end),
+  const getDateRangeLabel = () => {
+    const labels = {
+      today: "今日",
+      week: "本週",
+      month: "本月",
+      year: "本年",
     };
+
+    return labels[dateRange] ?? "本月";
   };
 
-  const getCurrentMonthRange = () => {
-    const now = new Date();
-
-    const year = now.getFullYear();
-
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-
-    const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
-
-    return {
-      startDate: `${year}-${month}-01`,
-      endDate: `${year}-${month}-${String(lastDay).padStart(2, "0")}`,
-    };
-  };
 
   const [incomeData, setIncomeData] = useState([]);
 
@@ -120,7 +103,7 @@ function Dashboard() {
         setLoading(true);
         setError("");
 
-        const { startDate, endDate } = getDateRange();
+        const { startDate, endDate } = getDateRange(dateRange);
 
         const [
           summaryResponse,
@@ -167,8 +150,8 @@ function Dashboard() {
   }, [dateRange]);
 
   return (
-    <div className="container-fluid px-4 py-4">
-      <div className="mb-4">
+    <div className="container-fluid px-4 py-4 page-container">
+      <div className="page-header">
         <h1 className="mb-1">Dashboard</h1>
 
         <p className="text-body-secondary mb-0">個人財務概況</p>
@@ -189,21 +172,21 @@ function Dashboard() {
 
         <div className="col-12 col-md-6 col-xl-3">
           <SummaryCard
-            title="本月收入"
+            title={`${getDateRangeLabel()}收入`}
             value={`$${summary.income.toLocaleString()}`}
           />
         </div>
 
         <div className="col-12 col-md-6 col-xl-3">
           <SummaryCard
-            title="本月支出"
+            title={`${getDateRangeLabel()}支出`}
             value={`$${summary.expense.toLocaleString()}`}
           />
         </div>
 
         <div className="col-12 col-md-6 col-xl-3">
           <SummaryCard
-            title="本月結餘"
+            title={`${getDateRangeLabel()}結餘`}
             value={`$${summary.balance.toLocaleString()}`}
           />
         </div>
