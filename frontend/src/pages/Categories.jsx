@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getCategories, createCategory } from "../services/categoryApi";
+import {
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../services/categoryApi";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -10,6 +15,8 @@ function Categories() {
 
   const [categoryName, setCategoryName] = useState("");
   const [categoryType, setCategoryType] = useState("EXPENSE");
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [deletingCategory, setDeletingCategory] = useState(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -25,26 +32,47 @@ function Categories() {
     fetchCategories();
   }, []);
 
-  const handleCreateCategory = async () => {
+  const handleSaveCategory = async () => {
     try {
-      await createCategory({
+      const data = {
         name: categoryName,
         type: categoryType,
-      });
+      };
 
-      // 重新取得分類
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, data);
+      } else {
+        await createCategory(data);
+      }
+
       const response = await getCategories();
       setCategories(response.data);
 
-      // 清空表單
       setCategoryName("");
       setCategoryType("EXPENSE");
-
-      // 關閉 Modal
+      setEditingCategory(null);
       setShowModal(false);
     } catch (error) {
-      console.error("新增分類失敗:", error);
-      setError("新增分類失敗");
+      console.error("儲存分類失敗:", error);
+      setError("儲存分類失敗");
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!deletingCategory) {
+      return;
+    }
+
+    try {
+      await deleteCategory(deletingCategory.id);
+
+      const response = await getCategories();
+      setCategories(response.data);
+
+      setDeletingCategory(null);
+    } catch (error) {
+      console.error("刪除分類失敗:", error);
+      setError("刪除分類失敗");
     }
   };
 
@@ -70,6 +98,7 @@ function Categories() {
                 <th>ID</th>
                 <th>分類名稱</th>
                 <th>類型</th>
+                <th>操作</th>
               </tr>
             </thead>
 
@@ -79,12 +108,34 @@ function Categories() {
                   <td>{index + 1}</td>
                   <td>{category.name}</td>
                   <td>{typeText}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() => {
+                        setEditingCategory(category);
+                        setCategoryName(category.name);
+                        setCategoryType(category.type);
+                        setShowModal(true);
+                      }}
+                    >
+                      編輯
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => setDeletingCategory(category)}
+                    >
+                      刪除
+                    </button>
+                  </td>
                 </tr>
               ))}
 
               {categoryList.length === 0 && (
                 <tr>
-                  <td colSpan="3" className="text-center text-muted">
+                  <td colSpan="4" className="text-center text-muted">
                     尚無分類
                   </td>
                 </tr>
@@ -134,12 +185,19 @@ function Categories() {
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">新增分類</h5>
+                <h5 className="modal-title">
+                  {editingCategory ? "修改分類" : "新增分類"}
+                </h5>
 
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingCategory(null);
+                    setCategoryName("");
+                    setCategoryType("EXPENSE");
+                  }}
                 ></button>
               </div>
 
@@ -180,7 +238,12 @@ function Categories() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingCategory(null);
+                    setCategoryName("");
+                    setCategoryType("EXPENSE");
+                  }}
                 >
                   取消
                 </button>
@@ -188,9 +251,61 @@ function Categories() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={handleCreateCategory}
+                  onClick={handleSaveCategory}
                 >
-                  新增
+                  {editingCategory ? "儲存" : "新增"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {deletingCategory && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          role="dialog"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">刪除分類</h5>
+
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setDeletingCategory(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body">
+                <p>
+                  確定要刪除分類「
+                  <strong>{deletingCategory.name}</strong>
+                  」嗎？
+                </p>
+
+                <p className="text-muted mb-0">
+                  如果已有交易使用此分類，舊交易將會顯示為「未分類」。
+                </p>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDeletingCategory(null)}
+                >
+                  取消
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDeleteCategory}
+                >
+                  刪除
                 </button>
               </div>
             </div>
