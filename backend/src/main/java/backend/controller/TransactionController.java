@@ -1,5 +1,6 @@
 package backend.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import backend.dto.transaction.TransactionRequest;
@@ -22,60 +24,51 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/transactions")
 public class TransactionController {
 
-    private final TransactionService transactionService;
+	private final TransactionService transactionService;
 
-    public TransactionController(TransactionService transactionService) {
-        this.transactionService = transactionService;
-    }
+	public TransactionController(TransactionService transactionService) {
+		this.transactionService = transactionService;
+	}
 
-    @GetMapping
-    public ResponseEntity<List<TransactionResponse>> getAllTransactions() {
+	@GetMapping
+	public ResponseEntity<List<TransactionResponse>> getAllTransactions(@RequestParam LocalDate startDate,
+			@RequestParam LocalDate endDate) {
 
-        List<TransactionResponse> response =
-                transactionService.getAllTransactions();
+		List<TransactionResponse> response = transactionService.getAllTransactions(startDate, endDate);
 
-        return ResponseEntity.ok(response);
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<TransactionResponse> getTransactionById(
-            @PathVariable Long id) {
+		return ResponseEntity.ok(response);
+	}
 
-        TransactionResponse response =
-                transactionService.getTransactionById(id);
+	@GetMapping("/{id}")
+	public ResponseEntity<TransactionResponse> getTransactionById(@PathVariable Long id) {
 
-        return ResponseEntity.ok(response);
-    }
-    
-    @PostMapping
-    public ResponseEntity<TransactionResponse> createTransaction(
-            @RequestBody @Valid TransactionRequest request) {
+		TransactionResponse response = transactionService.getTransactionById(id);
 
-        TransactionResponse response =
-                transactionService.createTransaction(request);
+		return ResponseEntity.ok(response);
+	}
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-    }
-    
-    @PutMapping("/{id}")
-    public ResponseEntity<TransactionResponse> updateTransaction(
-            @PathVariable Long id,
-            @RequestBody @Valid TransactionRequest request) {
+	@PostMapping
+	public ResponseEntity<TransactionResponse> createTransaction(@RequestBody @Valid TransactionRequest request) {
 
-        TransactionResponse response =
-                transactionService.updateTransaction(id, request);
+		TransactionResponse response = transactionService.createTransaction(request);
 
-        return ResponseEntity.ok(response);
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTransaction(
-            @PathVariable Long id) {
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	}
 
-        transactionService.deleteTransaction(id);
+	@PutMapping("/{id}")
+	public ResponseEntity<TransactionResponse> updateTransaction(@PathVariable Long id,
+			@RequestBody @Valid TransactionRequest request) {
 
-        return ResponseEntity.noContent().build();
-    }
+		TransactionResponse response = transactionService.updateTransaction(id, request);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteTransaction(@PathVariable Long id) {
+
+		transactionService.deleteTransaction(id);
+
+		return ResponseEntity.noContent().build();
+	}
 }
