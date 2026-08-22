@@ -1,5 +1,7 @@
 package backend.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -15,126 +17,107 @@ import backend.repository.TransactionRepository;
 @Service
 public class TransactionService {
 
-    private final TransactionRepository transactionRepository;
-    private final CategoryRepository categoryRepository;
+	private final TransactionRepository transactionRepository;
+	private final CategoryRepository categoryRepository;
 
-    public TransactionService(
-            TransactionRepository transactionRepository,
-            CategoryRepository categoryRepository) {
+	public TransactionService(TransactionRepository transactionRepository, CategoryRepository categoryRepository) {
 
-        this.transactionRepository = transactionRepository;
-        this.categoryRepository = categoryRepository;
-    }
-    
-    private TransactionResponse toResponse(Transaction transaction) {
+		this.transactionRepository = transactionRepository;
+		this.categoryRepository = categoryRepository;
+	}
 
-        TransactionResponse response = new TransactionResponse();
+	private TransactionResponse toResponse(Transaction transaction) {
 
-        response.setId(transaction.getId());
-        response.setCategoryId(
-                transaction.getCategory().getId());
-        response.setCategoryName(
-                transaction.getCategory().getName());
-        response.setType(transaction.getType());
-        response.setAmount(transaction.getAmount());
-        response.setPaymentMethod(
-                transaction.getPaymentMethod());
-        response.setDescription(
-                transaction.getDescription());
-        response.setTransactionDate(
-                transaction.getTransactionDate());
+		TransactionResponse response = new TransactionResponse();
 
-        return response;
-    }
-    
-    public List<TransactionResponse> getAllTransactions() {
+		response.setId(transaction.getId());
+		response.setCategoryId(transaction.getCategory().getId());
+		response.setCategoryName(transaction.getCategory().getName());
+		response.setType(transaction.getType());
+		response.setAmount(transaction.getAmount());
+		response.setPaymentMethod(transaction.getPaymentMethod());
+		response.setDescription(transaction.getDescription());
+		response.setTransactionDate(transaction.getTransactionDate());
 
-        List<Transaction> transactions =
-                transactionRepository.findAll();
+		return response;
+	}
 
-        return transactions.stream()
-                .map(this::toResponse)
-                .toList();
-    }
-    
-    public TransactionResponse createTransaction(
-            TransactionRequest request) {
+	public List<TransactionResponse> getAllTransactions(LocalDate startDate, LocalDate endDate) {
 
-        Category category = categoryRepository
-                .findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        Transaction transaction = new Transaction();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        transaction.setCategory(category);
-        transaction.setType(request.getType());
-        transaction.setAmount(request.getAmount());
-        transaction.setPaymentMethod(request.getPaymentMethod());
-        transaction.setDescription(request.getDescription());
-        transaction.setTransactionDate(request.getTransactionDate());
+		List<Transaction> transactions = transactionRepository
+				.findByTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(startDateTime,
+						endDateTime);
 
-        Transaction savedTransaction =
-                transactionRepository.save(transaction);
+		return transactions.stream().map(this::toResponse).toList();
+	}
 
-        TransactionResponse response = new TransactionResponse();
+	public TransactionResponse createTransaction(TransactionRequest request) {
 
-        response.setId(savedTransaction.getId());
-        response.setCategoryId(
-                savedTransaction.getCategory().getId());
-        response.setCategoryName(
-                savedTransaction.getCategory().getName());
-        response.setType(savedTransaction.getType());
-        response.setAmount(savedTransaction.getAmount());
-        response.setPaymentMethod(
-                savedTransaction.getPaymentMethod());
-        response.setDescription(
-                savedTransaction.getDescription());
-        response.setTransactionDate(
-                savedTransaction.getTransactionDate());
+		Category category = categoryRepository.findById(request.getCategoryId())
+				.orElseThrow(() -> new RuntimeException("Category not found"));
 
-        return toResponse(savedTransaction);
-    }
-    
-    public TransactionResponse getTransactionById(Long id) {
+		Transaction transaction = new Transaction();
 
-        Transaction transaction = transactionRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+		transaction.setCategory(category);
+		transaction.setType(request.getType());
+		transaction.setAmount(request.getAmount());
+		transaction.setPaymentMethod(request.getPaymentMethod());
+		transaction.setDescription(request.getDescription());
+		transaction.setTransactionDate(request.getTransactionDate());
 
-        return toResponse(transaction);
-    }
-    
-    public TransactionResponse updateTransaction(
-            Long id,
-            TransactionRequest request) {
+		Transaction savedTransaction = transactionRepository.save(transaction);
 
-        Transaction transaction = transactionRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+		TransactionResponse response = new TransactionResponse();
 
-        Category category = categoryRepository
-                .findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+		response.setId(savedTransaction.getId());
+		response.setCategoryId(savedTransaction.getCategory().getId());
+		response.setCategoryName(savedTransaction.getCategory().getName());
+		response.setType(savedTransaction.getType());
+		response.setAmount(savedTransaction.getAmount());
+		response.setPaymentMethod(savedTransaction.getPaymentMethod());
+		response.setDescription(savedTransaction.getDescription());
+		response.setTransactionDate(savedTransaction.getTransactionDate());
 
-        transaction.setCategory(category);
-        transaction.setType(request.getType());
-        transaction.setAmount(request.getAmount());
-        transaction.setPaymentMethod(request.getPaymentMethod());
-        transaction.setDescription(request.getDescription());
-        transaction.setTransactionDate(request.getTransactionDate());
+		return toResponse(savedTransaction);
+	}
 
-        Transaction updatedTransaction =
-                transactionRepository.save(transaction);
+	public TransactionResponse getTransactionById(Long id) {
 
-        return toResponse(updatedTransaction);
-    }
-    
-    public void deleteTransaction(Long id) {
+		Transaction transaction = transactionRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
-        Transaction transaction = transactionRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+		return toResponse(transaction);
+	}
 
-        transactionRepository.delete(transaction);
-    }
+	public TransactionResponse updateTransaction(Long id, TransactionRequest request) {
+
+		Transaction transaction = transactionRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+
+		Category category = categoryRepository.findById(request.getCategoryId())
+				.orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+		transaction.setCategory(category);
+		transaction.setType(request.getType());
+		transaction.setAmount(request.getAmount());
+		transaction.setPaymentMethod(request.getPaymentMethod());
+		transaction.setDescription(request.getDescription());
+		transaction.setTransactionDate(request.getTransactionDate());
+
+		Transaction updatedTransaction = transactionRepository.save(transaction);
+
+		return toResponse(updatedTransaction);
+	}
+
+	public void deleteTransaction(Long id) {
+
+		Transaction transaction = transactionRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+		transactionRepository.delete(transaction);
+	}
 }
