@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -19,7 +21,8 @@ public class TransactionRequest {
     private TransactionType type;
 
     @NotNull
-    @Positive
+    @DecimalMin(value = "10.00")
+    @Digits(integer = 10, fraction = 2)
     private BigDecimal amount;
 
     @NotNull
