@@ -188,6 +188,14 @@ function Transactions() {
     }
   };
 
+  const incomeTransactions = transactions.filter(
+    (transaction) => transaction.type === "INCOME",
+  );
+
+  const expenseTransactions = transactions.filter(
+    (transaction) => transaction.type === "EXPENSE",
+  );
+
   useEffect(() => {
     fetchTransactions();
   }, [dateRange]);
@@ -246,11 +254,35 @@ function Transactions() {
             </button>
           </div>
 
-          <TransactionTable
-            transactions={transactions}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          {/* 收入交易 */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-header">
+              <h5 className="mb-0">收入</h5>
+            </div>
+
+            <div className="card-body p-0">
+              <TransactionTable
+                transactions={incomeTransactions}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
+
+          {/* 支出交易 */}
+          <div className="card shadow-sm">
+            <div className="card-header">
+              <h5 className="mb-0">支出</h5>
+            </div>
+
+            <div className="card-body p-0">
+              <TransactionTable
+                transactions={expenseTransactions}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
 
           <div className="d-flex justify-content-end gap-2 mt-4">
             <button
