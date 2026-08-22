@@ -1,9 +1,10 @@
 function TransactionTable({ transactions, onEdit, onDelete }) {
   return (
     <div className="table-responsive">
-      <table className="table table-hover align-middle">
+      <table className="table table-hover align-middle mb-0 text-nowrap">
         <thead>
           <tr>
+            <th>編號</th>
             <th>類型</th>
             <th>類別</th>
             <th>金額</th>
@@ -17,13 +18,14 @@ function TransactionTable({ transactions, onEdit, onDelete }) {
         <tbody>
           {transactions.length === 0 ? (
             <tr>
-              <td colSpan="7" className="text-center py-5 text-body-secondary">
+              <td colSpan="8" className="text-center py-5 text-body-secondary">
                 目前沒有交易紀錄
               </td>
             </tr>
           ) : (
-            transactions.map((transaction) => (
+            transactions.map((transaction, index) => (
               <tr key={transaction.id}>
+                <td>{index + 1}</td>
                 <td>{transaction.type === "INCOME" ? "收入" : "支出"}</td>
 
                 <td>{transaction.categoryName ?? "未分類"}</td>
