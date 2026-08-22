@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -19,562 +20,382 @@ import backend.dto.dashboard.TrendResponse;
 import backend.enums.StatisticsInterval;
 import backend.enums.TransactionType;
 import backend.repository.TransactionRepository;
+import backend.entity.Transaction;
 
 @Service
 public class DashboardService {
 
-    private final TransactionRepository transactionRepository;
+	private final TransactionRepository transactionRepository;
 
-    public DashboardService(
-            TransactionRepository transactionRepository) {
+	public DashboardService(TransactionRepository transactionRepository) {
 
-        this.transactionRepository = transactionRepository;
-    }
+		this.transactionRepository = transactionRepository;
+	}
 
-    // =========================
-    // Summary
-    // =========================
+	// =========================
+	// Summary
+	// =========================
 
-    public DashboardSummaryResponse getSummary(
-            LocalDate startDate,
-            LocalDate endDate) {
+	public DashboardSummaryResponse getSummary(LocalDate startDate, LocalDate endDate) {
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        BigDecimal income =
-                transactionRepository.sumAmountByTypeAndDateBetween(
-                        TransactionType.INCOME,
-                        startDateTime,
-                        endDateTime
-                );
+		BigDecimal income = transactionRepository.sumAmountByTypeAndDateBetween(TransactionType.INCOME, startDateTime,
+				endDateTime);
 
-        BigDecimal expense =
-                transactionRepository.sumAmountByTypeAndDateBetween(
-                        TransactionType.EXPENSE,
-                        startDateTime,
-                        endDateTime
-                );
+		BigDecimal expense = transactionRepository.sumAmountByTypeAndDateBetween(TransactionType.EXPENSE, startDateTime,
+				endDateTime);
 
-        BigDecimal balance =
-                income.subtract(expense);
+		BigDecimal balance = income.subtract(expense);
 
-        return new DashboardSummaryResponse(
-                income,
-                expense,
-                balance
-        );
-    }
+		return new DashboardSummaryResponse(income, expense, balance);
+	}
 
-    // =========================
-    // Expense Category
-    // =========================
+	// =========================
+	// Expense Category
+	// =========================
 
-    public List<CategoryAmountResponse> getExpense(
-            LocalDate startDate,
-            LocalDate endDate) {
+	public List<CategoryAmountResponse> getExpense(LocalDate startDate, LocalDate endDate) {
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        List<CategoryAmountResponse> results =
-                transactionRepository.sumAmountGroupByCategory(
-                        TransactionType.EXPENSE,
-                        startDateTime,
-                        endDateTime
-                );
+		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(TransactionType.EXPENSE,
+				startDateTime, endDateTime);
 
-        results.forEach(result -> {
+		results.forEach(result -> {
 
-            if (result.getCategoryId() == null) {
-                result.setCategoryName("未分類");
-            }
+			if (result.getCategoryId() == null) {
+				result.setCategoryName("未分類");
+			}
 
-        });
+		});
 
-        return results;
-    }
+		return results;
+	}
 
-    // =========================
-    // Income Category
-    // =========================
+	// =========================
+	// Income Category
+	// =========================
 
-    public List<CategoryAmountResponse> getIncome(
-            LocalDate startDate,
-            LocalDate endDate) {
+	public List<CategoryAmountResponse> getIncome(LocalDate startDate, LocalDate endDate) {
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        List<CategoryAmountResponse> results =
-                transactionRepository.sumAmountGroupByCategory(
-                        TransactionType.INCOME,
-                        startDateTime,
-                        endDateTime
-                );
+		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(TransactionType.INCOME,
+				startDateTime, endDateTime);
 
-        results.forEach(result -> {
+		results.forEach(result -> {
 
-            if (result.getCategoryId() == null) {
-                result.setCategoryName("未分類");
-            }
+			if (result.getCategoryId() == null) {
+				result.setCategoryName("未分類");
+			}
 
-        });
+		});
 
-        return results;
-    }
+		return results;
+	}
 
-    // =========================
-    // Determine Interval
-    // =========================
+	// =========================
+	// Determine Interval
+	// =========================
 
-    private StatisticsInterval determineInterval(
-            LocalDate startDate,
-            LocalDate endDate) {
+	private StatisticsInterval determineInterval(LocalDate startDate, LocalDate endDate) {
 
-        long days =
-                java.time.temporal.ChronoUnit.DAYS.between(
-                        startDate,
-                        endDate
-                ) + 1;
+		long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
-        if (days == 1) {
-            return StatisticsInterval.HOUR;
-        }
+		if (days == 1) {
+			return StatisticsInterval.HOUR;
+		}
 
-        if (days <= 31) {
-            return StatisticsInterval.DAY;
-        }
+		if (days <= 31) {
+			return StatisticsInterval.DAY;
+		}
 
-        return StatisticsInterval.MONTH;
-    }
+		return StatisticsInterval.MONTH;
+	}
 
-    // =========================
-    // Expense Trend
-    // =========================
+	// =========================
+	// Expense Trend
+	// =========================
 
-    public List<TrendResponse> getExpenseTrend(
-            LocalDate startDate,
-            LocalDate endDate) {
+	public List<TrendResponse> getExpenseTrend(LocalDate startDate, LocalDate endDate) {
 
-        StatisticsInterval interval =
-                determineInterval(startDate, endDate);
+		StatisticsInterval interval = determineInterval(startDate, endDate);
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        List<Object[]> results;
+		List<Transaction> transactions = transactionRepository
+				.findByTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+						TransactionType.EXPENSE, startDateTime, endDateTime);
 
-        if (interval == StatisticsInterval.HOUR) {
+		List<TrendResponse> response = groupTransactionsByInterval(transactions, interval);
 
-            results = transactionRepository.getHourlyTrend(
-                    TransactionType.EXPENSE.name(),
-                    startDateTime,
-                    endDateTime
-            );
+		return fillMissingIntervals(response, startDate, endDate, interval);
+	}
 
-        } else if (interval == StatisticsInterval.DAY) {
+	// =========================
+	// Fill Missing Trend
+	// =========================
 
-            results = transactionRepository.getDailyTrend(
-                    TransactionType.EXPENSE.name(),
-                    startDateTime,
-                    endDateTime
-            );
+	private List<TrendResponse> fillMissingIntervals(List<TrendResponse> existingResults, LocalDate startDate,
+			LocalDate endDate, StatisticsInterval interval) {
 
-        } else {
+		Map<String, BigDecimal> existingData = new HashMap<>();
 
-            results = transactionRepository.getMonthlyTrend(
-                    TransactionType.EXPENSE.name(),
-                    startDateTime,
-                    endDateTime
-            );
-        }
+		for (TrendResponse result : existingResults) {
 
-        List<TrendResponse> response = new ArrayList<>();
+			existingData.put(result.getLabel(), result.getAmount());
+		}
 
-        for (Object[] result : results) {
+		List<TrendResponse> response = new ArrayList<>();
 
-            String label = (String) result[0];
+		if (interval == StatisticsInterval.HOUR) {
 
-            BigDecimal amount =
-                    new BigDecimal(result[1].toString());
+			LocalDateTime current = startDate.atStartOfDay();
 
-            response.add(
-                    new TrendResponse(label, amount)
-            );
-        }
+			LocalDateTime end = endDate.atTime(23, 0);
 
-        return fillMissingIntervals(
-                response,
-                startDate,
-                endDate,
-                interval
-        );
-    }
+			while (!current.isAfter(end)) {
 
-    // =========================
-    // Fill Missing Trend
-    // =========================
+				String label = current.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00"));
 
-    private List<TrendResponse> fillMissingIntervals(
-            List<TrendResponse> existingResults,
-            LocalDate startDate,
-            LocalDate endDate,
-            StatisticsInterval interval) {
+				BigDecimal amount = existingData.getOrDefault(label, BigDecimal.ZERO);
 
-        Map<String, BigDecimal> existingData =
-                new HashMap<>();
+				response.add(new TrendResponse(label, amount));
 
-        for (TrendResponse result : existingResults) {
+				current = current.plusHours(1);
+			}
 
-            existingData.put(
-                    result.getLabel(),
-                    result.getAmount()
-            );
-        }
+		} else if (interval == StatisticsInterval.DAY) {
 
-        List<TrendResponse> response =
-                new ArrayList<>();
+			LocalDate current = startDate;
 
-        if (interval == StatisticsInterval.HOUR) {
+			while (!current.isAfter(endDate)) {
 
-            LocalDateTime current =
-                    startDate.atStartOfDay();
+				String label = current.toString();
 
-            LocalDateTime end =
-                    endDate.atTime(23, 0);
+				BigDecimal amount = existingData.getOrDefault(label, BigDecimal.ZERO);
 
-            while (!current.isAfter(end)) {
+				response.add(new TrendResponse(label, amount));
 
-                String label =
-                        current.format(
-                                DateTimeFormatter.ofPattern(
-                                        "yyyy-MM-dd HH:00"
-                                )
-                        );
+				current = current.plusDays(1);
+			}
 
-                BigDecimal amount =
-                        existingData.getOrDefault(
-                                label,
-                                BigDecimal.ZERO
-                        );
+		} else {
 
-                response.add(
-                        new TrendResponse(label, amount)
-                );
+			YearMonth current = YearMonth.from(startDate);
 
-                current = current.plusHours(1);
-            }
+			YearMonth end = YearMonth.from(endDate);
 
-        } else if (interval == StatisticsInterval.DAY) {
+			while (!current.isAfter(end)) {
 
-            LocalDate current = startDate;
+				String label = current.toString();
 
-            while (!current.isAfter(endDate)) {
+				BigDecimal amount = existingData.getOrDefault(label, BigDecimal.ZERO);
 
-                String label =
-                        current.toString();
+				response.add(new TrendResponse(label, amount));
 
-                BigDecimal amount =
-                        existingData.getOrDefault(
-                                label,
-                                BigDecimal.ZERO
-                        );
+				current = current.plusMonths(1);
+			}
+		}
 
-                response.add(
-                        new TrendResponse(label, amount)
-                );
+		return response;
+	}
 
-                current = current.plusDays(1);
-            }
+	// =========================
+	// Income Trend
+	// =========================
 
-        } else {
+	public List<TrendResponse> getIncomeTrend(LocalDate startDate, LocalDate endDate) {
 
-            YearMonth current =
-                    YearMonth.from(startDate);
+		StatisticsInterval interval = determineInterval(startDate, endDate);
 
-            YearMonth end =
-                    YearMonth.from(endDate);
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-            while (!current.isAfter(end)) {
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-                String label =
-                        current.toString();
+		List<Transaction> transactions = transactionRepository
+				.findByTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+						TransactionType.INCOME, startDateTime, endDateTime);
 
-                BigDecimal amount =
-                        existingData.getOrDefault(
-                                label,
-                                BigDecimal.ZERO
-                        );
+		List<TrendResponse> response = groupTransactionsByInterval(transactions, interval);
 
-                response.add(
-                        new TrendResponse(label, amount)
-                );
+		return fillMissingIntervals(response, startDate, endDate, interval);
+	}
 
-                current = current.plusMonths(1);
-            }
-        }
+	// ==========================
+	// Trend Method
+	// ==========================
 
-        return response;
-    }
+	private List<TrendResponse> groupTransactionsByInterval(List<Transaction> transactions,
+			StatisticsInterval interval) {
 
-    // =========================
-    // Income Trend
-    // =========================
+		Map<String, BigDecimal> grouped = new HashMap<>();
 
-    public List<TrendResponse> getIncomeTrend(
-            LocalDate startDate,
-            LocalDate endDate) {
+		DateTimeFormatter hourFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00");
 
-        StatisticsInterval interval =
-                determineInterval(startDate, endDate);
+		for (Transaction transaction : transactions) {
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+			LocalDateTime dateTime = transaction.getTransactionDate();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+			String label;
 
-        List<Object[]> results;
+			if (interval == StatisticsInterval.HOUR) {
 
-        if (interval == StatisticsInterval.HOUR) {
+				label = dateTime.format(hourFormatter);
 
-            results = transactionRepository.getHourlyTrend(
-                    TransactionType.INCOME.name(),
-                    startDateTime,
-                    endDateTime
-            );
+			} else if (interval == StatisticsInterval.DAY) {
 
-        } else if (interval == StatisticsInterval.DAY) {
+				label = dateTime.toLocalDate().toString();
 
-            results = transactionRepository.getDailyTrend(
-                    TransactionType.INCOME.name(),
-                    startDateTime,
-                    endDateTime
-            );
+			} else {
 
-        } else {
+				label = YearMonth.from(dateTime).toString();
+			}
 
-            results = transactionRepository.getMonthlyTrend(
-                    TransactionType.INCOME.name(),
-                    startDateTime,
-                    endDateTime
-            );
-        }
+			grouped.merge(label, transaction.getAmount(), BigDecimal::add);
+		}
 
-        List<TrendResponse> response = new ArrayList<>();
+		List<TrendResponse> response = new ArrayList<>();
 
-        for (Object[] result : results) {
+		for (Map.Entry<String, BigDecimal> entry : grouped.entrySet()) {
 
-            String label = (String) result[0];
+			response.add(new TrendResponse(entry.getKey(), entry.getValue()));
+		}
 
-            BigDecimal amount =
-                    new BigDecimal(result[1].toString());
+		response.sort((a, b) -> a.getLabel().compareTo(b.getLabel()));
 
-            response.add(
-                    new TrendResponse(label, amount)
-            );
-        }
+		return response;
+	}
 
-        return fillMissingIntervals(
-                response,
-                startDate,
-                endDate,
-                interval
-        );
-    }
+	// =========================
+	// Frequency
+	// =========================
 
-    // =========================
-    // Frequency
-    // =========================
+	public List<FrequencyResponse> getFrequency(LocalDate startDate, LocalDate endDate) {
 
-    public List<FrequencyResponse> getFrequency(
-            LocalDate startDate,
-            LocalDate endDate) {
+		StatisticsInterval interval = determineInterval(startDate, endDate);
 
-        StatisticsInterval interval =
-                determineInterval(startDate, endDate);
+		LocalDateTime startDateTime = startDate.atStartOfDay();
 
-        LocalDateTime startDateTime =
-                startDate.atStartOfDay();
+		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        LocalDateTime endDateTime =
-                endDate.plusDays(1).atStartOfDay();
+		List<Transaction> transactions = transactionRepository
+				.findByTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(startDateTime,
+						endDateTime);
 
-        List<Object[]> results;
+		Map<String, Long> grouped = new HashMap<>();
 
-        if (interval == StatisticsInterval.HOUR) {
+		DateTimeFormatter hourFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00");
 
-            results = transactionRepository.getHourlyFrequency(
-                    startDateTime,
-                    endDateTime
-            );
+		for (Transaction transaction : transactions) {
 
-        } else if (interval == StatisticsInterval.DAY) {
+			LocalDateTime dateTime = transaction.getTransactionDate();
 
-            results = transactionRepository.getDailyFrequency(
-                    startDateTime,
-                    endDateTime
-            );
+			String label;
 
-        } else {
+			if (interval == StatisticsInterval.HOUR) {
 
-            results = transactionRepository.getMonthlyFrequency(
-                    startDateTime,
-                    endDateTime
-            );
-        }
+				label = dateTime.format(hourFormatter);
 
-        List<FrequencyResponse> response =
-                new ArrayList<>();
+			} else if (interval == StatisticsInterval.DAY) {
 
-        for (Object[] result : results) {
+				label = dateTime.toLocalDate().toString();
 
-            String label = (String) result[0];
+			} else {
 
-            Long count =
-                    ((Number) result[1]).longValue();
+				label = YearMonth.from(dateTime).toString();
+			}
 
-            response.add(
-                    new FrequencyResponse(
-                            label,
-                            count
-                    )
-            );
-        }
+			grouped.merge(label, 1L, Long::sum);
+		}
 
-        return fillMissingFrequencyIntervals(
-                response,
-                startDate,
-                endDate,
-                interval
-        );
-    }
+		List<FrequencyResponse> response = new ArrayList<>();
 
-    // =========================
-    // Fill Missing Frequency
-    // =========================
+		for (Map.Entry<String, Long> entry : grouped.entrySet()) {
 
-    private List<FrequencyResponse> fillMissingFrequencyIntervals(
-            List<FrequencyResponse> existingResults,
-            LocalDate startDate,
-            LocalDate endDate,
-            StatisticsInterval interval) {
+			response.add(new FrequencyResponse(entry.getKey(), entry.getValue()));
+		}
 
-        Map<String, Long> existingData =
-                new HashMap<>();
+		response.sort((a, b) -> a.getLabel().compareTo(b.getLabel()));
 
-        for (FrequencyResponse result : existingResults) {
+		return fillMissingFrequencyIntervals(response, startDate, endDate, interval);
+	}
 
-            existingData.put(
-                    result.getLabel(),
-                    result.getCount()
-            );
-        }
+	// =========================
+	// Fill Missing Frequency
+	// =========================
 
-        List<FrequencyResponse> response =
-                new ArrayList<>();
+	private List<FrequencyResponse> fillMissingFrequencyIntervals(List<FrequencyResponse> existingResults,
+			LocalDate startDate, LocalDate endDate, StatisticsInterval interval) {
 
-        if (interval == StatisticsInterval.HOUR) {
+		Map<String, Long> existingData = new HashMap<>();
 
-            LocalDateTime current =
-                    startDate.atStartOfDay();
+		for (FrequencyResponse result : existingResults) {
 
-            LocalDateTime end =
-                    endDate.atTime(23, 0);
+			existingData.put(result.getLabel(), result.getCount());
+		}
 
-            while (!current.isAfter(end)) {
+		List<FrequencyResponse> response = new ArrayList<>();
 
-                String label =
-                        current.format(
-                                DateTimeFormatter.ofPattern(
-                                        "yyyy-MM-dd HH:00"
-                                )
-                        );
+		if (interval == StatisticsInterval.HOUR) {
 
-                Long count =
-                        existingData.getOrDefault(
-                                label,
-                                0L
-                        );
+			LocalDateTime current = startDate.atStartOfDay();
 
-                response.add(
-                        new FrequencyResponse(
-                                label,
-                                count
-                        )
-                );
+			LocalDateTime end = endDate.atTime(23, 0);
 
-                current = current.plusHours(1);
-            }
+			while (!current.isAfter(end)) {
 
-        } else if (interval == StatisticsInterval.DAY) {
+				String label = current.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:00"));
 
-            LocalDate current = startDate;
+				Long count = existingData.getOrDefault(label, 0L);
 
-            while (!current.isAfter(endDate)) {
+				response.add(new FrequencyResponse(label, count));
 
-                String label =
-                        current.toString();
+				current = current.plusHours(1);
+			}
 
-                Long count =
-                        existingData.getOrDefault(
-                                label,
-                                0L
-                        );
+		} else if (interval == StatisticsInterval.DAY) {
 
-                response.add(
-                        new FrequencyResponse(
-                                label,
-                                count
-                        )
-                );
+			LocalDate current = startDate;
 
-                current = current.plusDays(1);
-            }
+			while (!current.isAfter(endDate)) {
 
-        } else {
+				String label = current.toString();
 
-            YearMonth current =
-                    YearMonth.from(startDate);
+				Long count = existingData.getOrDefault(label, 0L);
 
-            YearMonth end =
-                    YearMonth.from(endDate);
+				response.add(new FrequencyResponse(label, count));
 
-            while (!current.isAfter(end)) {
+				current = current.plusDays(1);
+			}
 
-                String label =
-                        current.toString();
+		} else {
 
-                Long count =
-                        existingData.getOrDefault(
-                                label,
-                                0L
-                        );
+			YearMonth current = YearMonth.from(startDate);
 
-                response.add(
-                        new FrequencyResponse(
-                                label,
-                                count
-                        )
-                );
+			YearMonth end = YearMonth.from(endDate);
 
-                current = current.plusMonths(1);
-            }
-        }
+			while (!current.isAfter(end)) {
 
-        return response;
-    }
+				String label = current.toString();
+
+				Long count = existingData.getOrDefault(label, 0L);
+
+				response.add(new FrequencyResponse(label, count));
+
+				current = current.plusMonths(1);
+			}
+		}
+
+		return response;
+	}
 }
