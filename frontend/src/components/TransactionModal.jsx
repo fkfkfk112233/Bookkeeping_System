@@ -38,7 +38,11 @@ function TransactionModal({
 
       setPaymentMethod(transaction.paymentMethod ?? "CASH");
 
-      setTransactionDate(getCurrentDateTime());
+      setTransactionDate(
+        transaction.transactionDate
+          ? transaction.transactionDate.slice(0, 16)
+          : getCurrentDateTime(),
+      );
 
       setDescription(transaction.description ?? "");
     } else {
@@ -57,7 +61,9 @@ function TransactionModal({
       return;
     }
 
-    if (!amount || Number(amount) <= 0) {
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount < 10 || numericAmount % 10 !== 0) {
       return;
     }
 
@@ -67,7 +73,7 @@ function TransactionModal({
 
     onSubmit({
       categoryId: Number(categoryId),
-      amount: Number(amount),
+      amount: numericAmount,
       paymentMethod,
       transactionDate,
       description,
