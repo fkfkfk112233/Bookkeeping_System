@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
 import TransactionModal from "../components/TransactionModal";
-import { getTransactions, createTransaction } from "../services/transactionApi";
+import {
+  getTransactions,
+  createTransaction,
+  updateTransaction,
+} from "../services/transactionApi";
 import { getCategories } from "../services/categoryApi";
 
 function Transactions() {
@@ -55,18 +59,25 @@ function Transactions() {
 
   const handleSubmit = async (data) => {
     try {
-      await createTransaction({
-        ...data,
-        type: modalType,
-      });
+      if (editingTransaction) {
+        await updateTransaction(editingTransaction.id, {
+          ...data,
+          type: modalType,
+        });
+      } else {
+        await createTransaction({
+          ...data,
+          type: modalType,
+        });
+      }
 
       handleCloseModal();
 
       await fetchTransactions();
     } catch (error) {
-      console.error("Failed to create transaction:", error);
+      console.error("Failed to save transaction:", error);
 
-      setError("新增交易失敗");
+      setError(editingTransaction ? "修改交易失敗" : "新增交易失敗");
     }
   };
 
