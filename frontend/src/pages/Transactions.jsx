@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
 import TransactionModal from "../components/TransactionModal";
 import { getTransactions, createTransaction } from "../services/transactionApi";
+import { getCategories } from "../services/categoryApi";
 
 function Transactions() {
   const [showModal, setShowModal] = useState(false);
@@ -10,23 +11,7 @@ function Transactions() {
 
   const [editingTransaction, setEditingTransaction] = useState(null);
 
-  const [categories] = useState([
-    {
-      id: 1,
-      name: "飲食",
-      type: "EXPENSE",
-    },
-    {
-      id: 2,
-      name: "交通",
-      type: "EXPENSE",
-    },
-    {
-      id: 3,
-      name: "薪資",
-      type: "INCOME",
-    },
-  ]);
+  const [categories, setCategories] = useState([]);
 
   const [transactions, setTransactions] = useState([]);
 
@@ -163,9 +148,25 @@ function Transactions() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await getCategories();
+
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+
+      setError("無法取得分類");
+    }
+  };
+
   useEffect(() => {
     fetchTransactions();
   }, [dateRange]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   return (
     <div className="container-fluid px-4 py-4">
