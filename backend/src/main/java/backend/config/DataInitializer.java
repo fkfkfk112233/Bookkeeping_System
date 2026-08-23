@@ -14,10 +14,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 public class DataInitializer {
+
+    private static final String DATA_DB_URL = "jdbc:sqlite:data.db";
+    private static final String TEST_USERNAME = "testuser";
 
     @Bean
     CommandLineRunner initDatabase(
@@ -27,196 +42,241 @@ public class DataInitializer {
 
         return args -> {
 
-            // 如果已經有資料，就不建立測試資料
-            if (userRepository.count() > 0) {
+            Path dataDbPath = Path.of("data.db");
+
+            // 沒有 data.db 就直接略過測試資料匯入
+            if (!Files.exists(dataDbPath)) {
+                System.out.println("data.db not found. Skip test data import.");
                 return;
             }
 
-            // =========================
-            // User
-            // =========================
-
-            User user = new User();
-
-            user.setUsername("testuser");
-            user.setPassword("123456");
-            user.setEmail("test@example.com");
-            user.setRole("USER");
-            user.setEnabled(true);
-
-            user = userRepository.save(user);
-
-            // =========================
-            // Categories
-            // =========================
-
-            Category food =
-                    createCategory(user, "飲食", TransactionType.EXPENSE);
-
-            Category transport =
-                    createCategory(user, "交通", TransactionType.EXPENSE);
-
-            Category entertainment =
-                    createCategory(user, "娛樂", TransactionType.EXPENSE);
-
-            Category shopping =
-                    createCategory(user, "購物", TransactionType.EXPENSE);
-
-            Category salary =
-                    createCategory(user, "薪資", TransactionType.INCOME);
-
-            Category bonus =
-                    createCategory(user, "獎金", TransactionType.INCOME);
-
-            categoryRepository.save(food);
-            categoryRepository.save(transport);
-            categoryRepository.save(entertainment);
-            categoryRepository.save(shopping);
-            categoryRepository.save(salary);
-            categoryRepository.save(bonus);
-
-            // =========================
-            // Transactions
-            // =========================
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    salary,
-                    TransactionType.INCOME,
-                    "30000",
-                    PaymentMethod.CASH,
-                    "八月薪資",
-                    LocalDateTime.of(2026, 8, 1, 9, 0));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    bonus,
-                    TransactionType.INCOME,
-                    "5000",
-                    PaymentMethod.CASH,
-                    "績效獎金",
-                    LocalDateTime.of(2026, 8, 5, 10, 30));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    food,
-                    TransactionType.EXPENSE,
-                    "120",
-                    PaymentMethod.CASH,
-                    "午餐",
-                    LocalDateTime.of(2026, 8, 18, 12, 30));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    transport,
-                    TransactionType.EXPENSE,
-                    "50",
-                    PaymentMethod.CASH,
-                    "捷運",
-                    LocalDateTime.of(2026, 8, 18, 18, 0));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    food,
-                    TransactionType.EXPENSE,
-                    "180",
-                    PaymentMethod.CREDIT_CARD,
-                    "晚餐",
-                    LocalDateTime.of(2026, 8, 19, 19, 0));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    entertainment,
-                    TransactionType.EXPENSE,
-                    "350",
-                    PaymentMethod.CREDIT_CARD,
-                    "電影",
-                    LocalDateTime.of(2026, 8, 19, 20, 30));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    shopping,
-                    TransactionType.EXPENSE,
-                    "1200",
-                    PaymentMethod.CREDIT_CARD,
-                    "購買衣服",
-                    LocalDateTime.of(2026, 8, 20, 15, 0));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    transport,
-                    TransactionType.EXPENSE,
-                    "50",
-                    PaymentMethod.CASH,
-                    "捷運",
-                    LocalDateTime.of(2026, 8, 21, 8, 30));
-
-            createTransaction(
-                    transactionRepository,
-                    user,
-                    food,
-                    TransactionType.EXPENSE,
-                    "150",
-                    PaymentMethod.CASH,
-                    "午餐",
-                    LocalDateTime.of(2026, 8, 21, 12, 0));
+            // 已經有交易資料，就不要重複匯入
+            if (transactionRepository.count() > 0) {
+                System.out.println("Test data already exists. Skip import.");
+                return;
+            }
 
             System.out.println("====================================");
-            System.out.println("Test data initialized successfully.");
+            System.out.println("Importing test data from data.db...");
             System.out.println("====================================");
+
+            try (Connection connection = DriverManager.getConnection(DATA_DB_URL)) {
+
+                User user = findOrCreateUser(
+                        connection,
+                        userRepository);
+
+                Map<Long, Category> categoryMap = findOrCreateCategories(
+                        connection,
+                        user,
+                        categoryRepository);
+
+                int importedCount = importTransactions(
+                        connection,
+                        user,
+                        categoryMap,
+                        transactionRepository);
+
+                System.out.println("====================================");
+                System.out.println(
+                        "Test data imported successfully: "
+                                + importedCount
+                                + " transactions.");
+                System.out.println("====================================");
+            }
         };
     }
 
     // =========================
-    // Category 建立方法
+    // User
     // =========================
 
-    private Category createCategory(
-            User user,
-            String name,
-            TransactionType type) {
+    private User findOrCreateUser(
+            Connection connection,
+            UserRepository userRepository) throws SQLException {
 
-        Category category = new Category();
+        List<User> users = userRepository.findAll();
 
-        category.setUser(user);
-        category.setName(name);
-        category.setType(type);
+        for (User user : users) {
+            if (TEST_USERNAME.equals(user.getUsername())) {
+                return user;
+            }
+        }
 
-        return category;
+        String sql = """
+                SELECT username, password, email, role, enabled
+                FROM users
+                WHERE username = ?
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, TEST_USERNAME);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new IllegalStateException(
+                            "User '" + TEST_USERNAME + "' not found in data.db.");
+                }
+
+                User user = new User();
+                user.setUsername(resultSet.getString("username"));
+                user.setPassword(resultSet.getString("password"));
+                user.setEmail(resultSet.getString("email"));
+                user.setRole(resultSet.getString("role"));
+                user.setEnabled(resultSet.getBoolean("enabled"));
+
+                return userRepository.save(user);
+            }
+        }
     }
 
     // =========================
-    // Transaction 建立方法
+    // Categories
     // =========================
 
-    private void createTransaction(
-            TransactionRepository transactionRepository,
+    private Map<Long, Category> findOrCreateCategories(
+            Connection connection,
             User user,
-            Category category,
+            CategoryRepository categoryRepository) throws SQLException {
+
+        Map<Long, Category> categoryMap = new HashMap<>();
+
+        String sql = """
+                SELECT id, name, type, category_id
+                FROM categories
+                ORDER BY id
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            // 第一階段：先建立所有 Category
+            while (resultSet.next()) {
+                Long sourceId = resultSet.getLong("id");
+
+                String name = resultSet.getString("name");
+                TransactionType type = TransactionType.valueOf(
+                        resultSet.getString("type"));
+
+                Category category = findExistingCategory(
+                        user,
+                        name,
+                        type,
+                        categoryRepository);
+
+                if (category == null) {
+                    category = new Category();
+                    category.setUser(user);
+                    category.setName(name);
+                    category.setType(type);
+                    category = categoryRepository.save(category);
+                }
+
+                categoryMap.put(sourceId, category);
+            }
+        }
+
+        // 第二階段：處理父分類關係
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                Long sourceId = resultSet.getLong("id");
+                long parentIdValue = resultSet.getLong("category_id");
+                Long parentId = resultSet.wasNull() ? null : parentIdValue;
+
+                if (parentId == null) {
+                    continue;
+                }
+
+                Category category = categoryMap.get(sourceId);
+                Category parentCategory = categoryMap.get(parentId);
+
+                if (category != null && parentCategory != null) {
+                    category.setCategory(parentCategory);
+                    categoryRepository.save(category);
+                }
+            }
+        }
+
+        return categoryMap;
+    }
+
+    private Category findExistingCategory(
+            User user,
+            String name,
             TransactionType type,
-            String amount,
-            PaymentMethod paymentMethod,
-            String description,
-            LocalDateTime transactionDate) {
+            CategoryRepository categoryRepository) {
 
-        Transaction transaction = new Transaction();
+        return categoryRepository.findAll()
+                .stream()
+                .filter(category -> category.getUser().getId().equals(user.getId()))
+                .filter(category -> category.getName().equals(name))
+                .filter(category -> category.getType() == type)
+                .findFirst()
+                .orElse(null);
+    }
 
-        transaction.setUser(user);
-        transaction.setCategory(category);
-        transaction.setType(type);
-        transaction.setAmount(new BigDecimal(amount));
-        transaction.setPaymentMethod(paymentMethod);
-        transaction.setDescription(description);
-        transaction.setTransactionDate(transactionDate);
+    // =========================
+    // Transactions
+    // =========================
 
-        transactionRepository.save(transaction);
+    private int importTransactions(
+            Connection connection,
+            User user,
+            Map<Long, Category> categoryMap,
+            TransactionRepository transactionRepository) throws SQLException {
+
+        String sql = """
+                SELECT amount,
+                       payment_method,
+                       description,
+                       transaction_date,
+                       type,
+                       category_id
+                FROM transactions
+                ORDER BY id
+                """;
+
+        int count = 0;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+
+                BigDecimal amount = resultSet.getBigDecimal("amount");
+
+                PaymentMethod paymentMethod = PaymentMethod.valueOf(
+                        resultSet.getString("payment_method"));
+
+                TransactionType type = TransactionType.valueOf(
+                        resultSet.getString("type"));
+
+                long categoryIdValue = resultSet.getLong("category_id");
+                Long categoryId = resultSet.wasNull() ? null : categoryIdValue;
+                Category category = categoryMap.get(categoryId);
+
+                long timestamp = resultSet.getLong("transaction_date");
+                LocalDateTime transactionDate = Instant
+                        .ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime();
+
+                Transaction transaction = new Transaction();
+                transaction.setUser(user);
+                transaction.setCategory(category);
+                transaction.setType(type);
+                transaction.setAmount(amount);
+                transaction.setPaymentMethod(paymentMethod);
+                transaction.setDescription(resultSet.getString("description"));
+                transaction.setTransactionDate(transactionDate);
+
+                transactionRepository.save(transaction);
+                count++;
+            }
+        }
+
+        return count;
     }
 }
