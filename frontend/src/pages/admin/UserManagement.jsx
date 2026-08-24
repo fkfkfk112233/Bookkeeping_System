@@ -12,10 +12,11 @@ import UserModal from "../../components/UserModal";
 function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [showModal, setShowModal] = useState(false);
-
   const [editingUser, setEditingUser] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   useEffect(() => {
     fetchUsers();
@@ -96,6 +97,23 @@ function UserManagement() {
     });
   };
 
+  const filteredUsers = users.filter((user) => {
+    const keyword = searchText.toLowerCase();
+
+    const matchesSearch =
+      user.username.toLowerCase().includes(keyword) ||
+      user.email.toLowerCase().includes(keyword);
+
+    const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
+
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      (statusFilter === "ENABLED" && user.enabled) ||
+      (statusFilter === "DISABLED" && !user.enabled);
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -116,6 +134,45 @@ function UserManagement() {
         </button>
       </div>
 
+      <div className="row g-2 mb-4">
+        {/* Search */}
+        <div className="col-12 col-md-6 col-lg-5">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="搜尋 Username 或 Email"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+
+        {/* Role */}
+        <div className="col-12 col-md-3 col-lg-2">
+          <select
+            className="form-select"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+          >
+            <option value="ALL">全部角色</option>
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+
+        {/* Status */}
+        <div className="col-12 col-md-3 col-lg-2">
+          <select
+            className="form-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">全部狀態</option>
+            <option value="ENABLED">Enabled</option>
+            <option value="DISABLED">Disabled</option>
+          </select>
+        </div>
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
@@ -134,48 +191,59 @@ function UserManagement() {
             </thead>
 
             <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.id}</td>
-
-                  <td>{user.username}</td>
-
-                  <td>{user.email}</td>
-
-                  <td>
-                    <span className="badge bg-secondary">{user.role}</span>
-                  </td>
-
-                  <td>
-                    {user.enabled ? (
-                      <span className="badge bg-success">Enabled</span>
-                    ) : (
-                      <span className="badge bg-danger">Disabled</span>
-                    )}
-                  </td>
-
-                  <td>{formatDateTime(user.createdAt)}</td>
-
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline-primary me-2"
-                      onClick={() => {
-                        setEditingUser(user);
-                        setShowModal(true);
-                      }}
-                    >
-                      編輯
-                    </button>
-
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDeleteUser(user)}
-                    >
-                      刪除
-                    </button>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-4 text-body-secondary"
+                  >
+                    沒有符合條件的 User
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+
+                    <td>{user.username}</td>
+
+                    <td>{user.email}</td>
+
+                    <td>
+                      <span className="badge bg-secondary">{user.role}</span>
+                    </td>
+
+                    <td>
+                      {user.enabled ? (
+                        <span className="badge bg-success">Enabled</span>
+                      ) : (
+                        <span className="badge bg-danger">Disabled</span>
+                      )}
+                    </td>
+
+                    <td>{formatDateTime(user.createdAt)}</td>
+
+                    <td>
+                      <button
+                        className="btn btn-sm btn-outline-primary me-2"
+                        onClick={() => {
+                          setEditingUser(user);
+                          setShowModal(true);
+                        }}
+                      >
+                        編輯
+                      </button>
+
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleDeleteUser(user)}
+                      >
+                        刪除
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
