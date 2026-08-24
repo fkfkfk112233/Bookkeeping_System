@@ -32,8 +32,16 @@ public class UserProfileController {
     public ResponseEntity<UserProfileResponse> getProfile(
             @PathVariable Long id) {
 
-        UserProfileResponse response =
-                userService.getUserProfile(id);
+        UserProfileResponse response = userService.getUserProfile(id);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<UserProfileResponse> getProfileByUsername(
+            @PathVariable String username) {
+
+        UserProfileResponse response = userService.getUserProfileByUsername(username);
 
         return ResponseEntity.ok(response);
     }
@@ -47,11 +55,9 @@ public class UserProfileController {
             @PathVariable Long id,
             @RequestBody UserProfileRequest request) {
 
-        UserProfileResponse response =
-                userService.updateUserProfile(
-                        id,
-                        request
-                );
+        UserProfileResponse response = userService.updateUserProfile(
+                id,
+                request);
 
         return ResponseEntity.ok(response);
     }
