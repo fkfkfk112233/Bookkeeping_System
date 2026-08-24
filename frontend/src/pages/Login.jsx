@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { getUserByUsername } from "../services/userApi";
+
 function Login() {
   const navigate = useNavigate();
 
