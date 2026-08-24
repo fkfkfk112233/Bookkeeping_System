@@ -35,7 +35,7 @@ function Navbar() {
           {/* Center Navigation */}
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-4">
             <li className="nav-item">
-              <NavLink className="nav-link" to="/">
+              <NavLink className="nav-link" to="/dashboard">
                 Dashboard
               </NavLink>
             </li>
