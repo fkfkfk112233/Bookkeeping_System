@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { getUsers, createUser } from "../../services/userApi";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../../services/userApi";
 
 import UserModal from "../../components/UserModal";
 
@@ -9,6 +14,8 @@ function UserManagement() {
   const [loading, setLoading] = useState(true);
 
   const [showModal, setShowModal] = useState(false);
+
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -40,6 +47,39 @@ function UserManagement() {
     }
   };
 
+  const handleUpdateUser = async (userData) => {
+    try {
+      await updateUser(editingUser.id, userData);
+
+      setShowModal(false);
+      setEditingUser(null);
+
+      await fetchUsers();
+    } catch (error) {
+      console.error("更新 User 失敗:", error);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    const confirmed = window.confirm(`確定要刪除 User「${user.username}」嗎？`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteUser(user.id);
+
+      await fetchUsers();
+    } catch (error) {
+      console.error("刪除 User 失敗:", error);
+
+      const message = error.response?.data?.message || "刪除 User 失敗";
+
+      window.alert(message);
+    }
+  };
+
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -49,7 +89,13 @@ function UserManagement() {
           <p className="text-body-secondary mb-0">管理系統使用者</p>
         </div>
 
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingUser(null);
+            setShowModal(true);
+          }}
+        >
           新增 User
         </button>
       </div>
@@ -95,11 +141,20 @@ function UserManagement() {
                   <td>{user.createdAt ?? "-"}</td>
 
                   <td>
-                    <button className="btn btn-sm btn-outline-primary me-2">
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() => {
+                        setEditingUser(user);
+                        setShowModal(true);
+                      }}
+                    >
                       編輯
                     </button>
 
-                    <button className="btn btn-sm btn-outline-danger">
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleDeleteUser(user)}
+                    >
                       刪除
                     </button>
                   </td>
@@ -112,8 +167,12 @@ function UserManagement() {
 
       <UserModal
         show={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleCreateUser}
+        editingUser={editingUser}
+        onClose={() => {
+          setShowModal(false);
+          setEditingUser(null);
+        }}
+        onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
       />
     </div>
   );
