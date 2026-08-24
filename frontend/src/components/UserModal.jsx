@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-function UserModal({ show, onClose, onSubmit }) {
+function UserModal({ show, onClose, onSubmit, editingUser }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -8,6 +8,28 @@ function UserModal({ show, onClose, onSubmit }) {
     role: "USER",
     enabled: true,
   });
+
+  // 編輯模式：把資料帶進 Modal
+  useEffect(() => {
+    if (editingUser) {
+      setFormData({
+        username: editingUser.username,
+        password: "",
+        email: editingUser.email,
+        role: editingUser.role,
+        enabled: editingUser.enabled,
+      });
+    } else {
+      // 新增模式：清空表單
+      setFormData({
+        username: "",
+        password: "",
+        email: "",
+        role: "USER",
+        enabled: true,
+      });
+    }
+  }, [editingUser, show]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,32 +46,31 @@ function UserModal({ show, onClose, onSubmit }) {
     onSubmit(formData);
   };
 
-  if (!show) {
-    return null;
-  }
+  if (!show) return null;
+
+  const isEdit = editingUser !== null;
 
   return (
     <div
       className="modal d-block"
-      tabIndex="-1"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+      style={{ backgroundColor: "rgba(0,0,0,.5)" }}
     >
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">新增 User</h5>
+            <h5 className="modal-title">
+              {isEdit ? "編輯 User" : "新增 User"}
+            </h5>
 
-            <button type="button" className="btn-close" onClick={onClose} />
+            <button className="btn-close" onClick={onClose} />
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
-              {/* Username */}
               <div className="mb-3">
                 <label className="form-label">Username</label>
 
                 <input
-                  type="text"
                   className="form-control"
                   name="username"
                   value={formData.username}
@@ -58,7 +79,6 @@ function UserModal({ show, onClose, onSubmit }) {
                 />
               </div>
 
-              {/* Password */}
               <div className="mb-3">
                 <label className="form-label">Password</label>
 
@@ -68,11 +88,10 @@ function UserModal({ show, onClose, onSubmit }) {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  required
+                  placeholder={isEdit ? "留空表示不修改密碼" : ""}
                 />
               </div>
 
-              {/* Email */}
               <div className="mb-3">
                 <label className="form-label">Email</label>
 
@@ -86,7 +105,6 @@ function UserModal({ show, onClose, onSubmit }) {
                 />
               </div>
 
-              {/* Role */}
               <div className="mb-3">
                 <label className="form-label">Role</label>
 
@@ -102,15 +120,14 @@ function UserModal({ show, onClose, onSubmit }) {
                 </select>
               </div>
 
-              {/* Enabled */}
               <div className="form-check">
                 <input
-                  type="checkbox"
                   className="form-check-input"
-                  id="enabled"
+                  type="checkbox"
                   name="enabled"
                   checked={formData.enabled}
                   onChange={handleChange}
+                  id="enabled"
                 />
 
                 <label className="form-check-label" htmlFor="enabled">
@@ -129,7 +146,7 @@ function UserModal({ show, onClose, onSubmit }) {
               </button>
 
               <button type="submit" className="btn btn-primary">
-                新增
+                {isEdit ? "儲存修改" : "新增"}
               </button>
             </div>
           </form>
