@@ -1,9 +1,7 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:8080/api/admin/users";
+import api from "./api";
 
 export const getUsers = async () => {
-  const response = await axios.get(API_URL);
+  const response = await api.get("/admin/users");
 
   return response.data;
 };
