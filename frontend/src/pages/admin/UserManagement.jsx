@@ -1,25 +1,44 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../../services/userApi";
+
+import { getUsers, createUser } from "../../services/userApi";
+
+import UserModal from "../../components/UserModal";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [showModal, setShowModal] = useState(false);
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await getUsers();
-
-        setUsers(data);
-      } catch (error) {
-        console.error("取得 User 失敗:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getUsers();
+
+      setUsers(data);
+    } catch (error) {
+      console.error("取得 User 失敗:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateUser = async (userData) => {
+    try {
+      await createUser(userData);
+
+      setShowModal(false);
+
+      await fetchUsers();
+    } catch (error) {
+      console.error("新增 User 失敗:", error);
+    }
+  };
 
   return (
     <div className="container py-4">
@@ -30,7 +49,9 @@ function UserManagement() {
           <p className="text-body-secondary mb-0">管理系統使用者</p>
         </div>
 
-        <button className="btn btn-primary">新增 User</button>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          新增 User
+        </button>
       </div>
 
       {loading ? (
@@ -88,6 +109,12 @@ function UserManagement() {
           </table>
         </div>
       )}
+
+      <UserModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleCreateUser}
+      />
     </div>
   );
 }
