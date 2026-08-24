@@ -5,3 +5,9 @@ export const getUsers = async () => {
 
   return response.data;
 };
+
+export const createUser = async (userData) => {
+  const response = await api.post("/admin/users", userData);
+
+  return response.data;
+};
