@@ -50,6 +50,16 @@ public class UserService {
 		return toProfileResponse(user);
 	}
 
+	public UserProfileResponse getUserProfileByUsername(
+			String username) {
+
+		User user = userRepository
+				.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		return toProfileResponse(user);
+	}
+
 	// =========================
 	// Entity → Response
 	// =========================
@@ -69,47 +79,44 @@ public class UserService {
 
 		return response;
 	}
-	
+
 	public UserProfileResponse updateUserProfile(
-	        Long id,
-	        UserProfileRequest request) {
+			Long id,
+			UserProfileRequest request) {
 
-	    User user = userRepository
-	            .findById(id)
-	            .orElseThrow(() ->
-	                    new RuntimeException("User not found"));
+		User user = userRepository
+				.findById(id)
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
-	    user.setUsername(request.getUsername());
-	    user.setEmail(request.getEmail());
+		user.setUsername(request.getUsername());
+		user.setEmail(request.getEmail());
 
-	    /*
-	     * 目前沒有真正的 Authentication，
-	     * 所以先允許直接修改 password。
-	     *
-	     * 之後加入 PasswordEncoder 時再修改。
-	     */
-	    if (request.getPassword() != null
-	            && !request.getPassword().isBlank()) {
+		/*
+		 * 目前沒有真正的 Authentication，
+		 * 所以先允許直接修改 password。
+		 *
+		 * 之後加入 PasswordEncoder 時再修改。
+		 */
+		if (request.getPassword() != null
+				&& !request.getPassword().isBlank()) {
 
-	        user.setPassword(request.getPassword());
-	    }
+			user.setPassword(request.getPassword());
+		}
 
-	    User updatedUser =
-	            userRepository.save(user);
+		User updatedUser = userRepository.save(user);
 
-	    return toProfileResponse(updatedUser);
+		return toProfileResponse(updatedUser);
 	}
-	
+
 	public void disableUser(Long id) {
 
-	    User user = userRepository
-	            .findById(id)
-	            .orElseThrow(() ->
-	                    new RuntimeException("User not found"));
+		User user = userRepository
+				.findById(id)
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
-	    user.setEnabled(false);
+		user.setEnabled(false);
 
-	    userRepository.save(user);
+		userRepository.save(user);
 	}
 
 	// =========================
