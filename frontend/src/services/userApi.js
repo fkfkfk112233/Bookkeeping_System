@@ -20,3 +20,11 @@ export const updateUser = async (id, userData) => {
 export const deleteUser = async (id) => {
   await api.delete(`/admin/users/${id}`);
 };
+
+export const getUserByUsername = async (username) => {
+  const response = await api.get(
+    `/users/username/${username}`
+  );
+
+  return response.data;
+};
