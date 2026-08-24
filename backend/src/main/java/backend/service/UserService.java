@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import backend.dto.user.UserProfileRequest;
+import backend.dto.user.UserProfileResponse;
 import backend.dto.user.UserRequest;
 import backend.dto.user.UserResponse;
 import backend.entity.User;
@@ -14,134 +16,177 @@ import backend.repository.UserRepository;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final CategoryRepository categoryRepository;
-    private final TransactionRepository transactionRepository;
+	private final UserRepository userRepository;
+	private final CategoryRepository categoryRepository;
+	private final TransactionRepository transactionRepository;
 
-    public UserService(
-            UserRepository userRepository,
-            CategoryRepository categoryRepository,
-            TransactionRepository transactionRepository) {
+	public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
+			TransactionRepository transactionRepository) {
 
-        this.userRepository = userRepository;
-        this.categoryRepository = categoryRepository;
-        this.transactionRepository = transactionRepository;
-    }
+		this.userRepository = userRepository;
+		this.categoryRepository = categoryRepository;
+		this.transactionRepository = transactionRepository;
+	}
 
-    // =========================
-    // Entity → Response
-    // =========================
+	private UserProfileResponse toProfileResponse(User user) {
 
-    private UserResponse toResponse(User user) {
+		UserProfileResponse response = new UserProfileResponse();
 
-        UserResponse response = new UserResponse();
+		response.setId(user.getId());
+		response.setUsername(user.getUsername());
+		response.setEmail(user.getEmail());
+		response.setRole(user.getRole());
+		response.setEnabled(user.getEnabled());
+		response.setCreatedAt(user.getCreatedAt());
+		response.setUpdatedAt(user.getUpdatedAt());
 
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
-        response.setEnabled(user.getEnabled());
-        response.setCreatedAt(user.getCreatedAt());
-        response.setUpdatedAt(user.getUpdatedAt());
-        response.setLastLoginAt(user.getLastLoginAt());
+		return response;
+	}
 
-        return response;
-    }
+	public UserProfileResponse getUserProfile(Long id) {
 
-    // =========================
-    // GET ALL
-    // =========================
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-    public List<UserResponse> getAllUsers() {
+		return toProfileResponse(user);
+	}
 
-        return userRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
-    }
+	// =========================
+	// Entity → Response
+	// =========================
 
-    // =========================
-    // GET BY ID
-    // =========================
+	private UserResponse toResponse(User user) {
 
-    public UserResponse getUserById(Long id) {
+		UserResponse response = new UserResponse();
 
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+		response.setId(user.getId());
+		response.setUsername(user.getUsername());
+		response.setEmail(user.getEmail());
+		response.setRole(user.getRole());
+		response.setEnabled(user.getEnabled());
+		response.setCreatedAt(user.getCreatedAt());
+		response.setUpdatedAt(user.getUpdatedAt());
+		response.setLastLoginAt(user.getLastLoginAt());
 
-        return toResponse(user);
-    }
+		return response;
+	}
+	
+	public UserProfileResponse updateUserProfile(
+	        Long id,
+	        UserProfileRequest request) {
 
-    // =========================
-    // CREATE
-    // =========================
+	    User user = userRepository
+	            .findById(id)
+	            .orElseThrow(() ->
+	                    new RuntimeException("User not found"));
 
-    public UserResponse createUser(UserRequest request) {
+	    user.setUsername(request.getUsername());
+	    user.setEmail(request.getEmail());
 
-        User user = new User();
+	    /*
+	     * 目前沒有真正的 Authentication，
+	     * 所以先允許直接修改 password。
+	     *
+	     * 之後加入 PasswordEncoder 時再修改。
+	     */
+	    if (request.getPassword() != null
+	            && !request.getPassword().isBlank()) {
 
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEmail(request.getEmail());
-        user.setRole(request.getRole());
-        user.setEnabled(request.getEnabled());
+	        user.setPassword(request.getPassword());
+	    }
 
-        User savedUser = userRepository.save(user);
+	    User updatedUser =
+	            userRepository.save(user);
 
-        return toResponse(savedUser);
-    }
+	    return toProfileResponse(updatedUser);
+	}
+	
+	public void disableUser(Long id) {
 
-    // =========================
-    // UPDATE
-    // =========================
+	    User user = userRepository
+	            .findById(id)
+	            .orElseThrow(() ->
+	                    new RuntimeException("User not found"));
 
-    public UserResponse updateUser(
-            Long id,
-            UserRequest request) {
+	    user.setEnabled(false);
 
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+	    userRepository.save(user);
+	}
 
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEmail(request.getEmail());
-        user.setRole(request.getRole());
-        user.setEnabled(request.getEnabled());
+	// =========================
+	// GET ALL
+	// =========================
 
-        User updatedUser =
-                userRepository.save(user);
+	public List<UserResponse> getAllUsers() {
 
-        return toResponse(updatedUser);
-    }
+		return userRepository.findAll().stream().map(this::toResponse).toList();
+	}
 
-    // =========================
-    // DELETE
-    // =========================
+	// =========================
+	// GET BY ID
+	// =========================
 
-    public void deleteUser(Long id) {
+	public UserResponse getUserById(Long id) {
 
-        User user = userRepository
-                .findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-        boolean hasCategories =
-                categoryRepository.existsByUser(user);
+		return toResponse(user);
+	}
 
-        boolean hasTransactions =
-                transactionRepository.existsByUser(user);
+	// =========================
+	// CREATE
+	// =========================
 
-        if (hasCategories || hasTransactions) {
+	public UserResponse createUser(UserRequest request) {
 
-            throw new IllegalArgumentException(
-                    "User has related categories or transactions and cannot be deleted"
-            );
-        }
+		User user = new User();
 
-        userRepository.delete(user);
-    }
+		user.setUsername(request.getUsername());
+		user.setPassword(request.getPassword());
+		user.setEmail(request.getEmail());
+		user.setRole(request.getRole());
+		user.setEnabled(request.getEnabled());
+
+		User savedUser = userRepository.save(user);
+
+		return toResponse(savedUser);
+	}
+
+	// =========================
+	// UPDATE
+	// =========================
+
+	public UserResponse updateUser(Long id, UserRequest request) {
+
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+
+		user.setUsername(request.getUsername());
+		user.setPassword(request.getPassword());
+		user.setEmail(request.getEmail());
+		user.setRole(request.getRole());
+		user.setEnabled(request.getEnabled());
+
+		User updatedUser = userRepository.save(user);
+
+		return toResponse(updatedUser);
+	}
+
+	// =========================
+	// DELETE
+	// =========================
+
+	public void deleteUser(Long id) {
+
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+
+		boolean hasCategories = categoryRepository.existsByUser(user);
+
+		boolean hasTransactions = transactionRepository.existsByUser(user);
+
+		if (hasCategories || hasTransactions) {
+
+			throw new IllegalArgumentException("User has related categories or transactions and cannot be deleted");
+		}
+
+		userRepository.delete(user);
+	}
 }
