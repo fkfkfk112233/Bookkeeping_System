@@ -55,7 +55,7 @@ function Navbar() {
 
           {/* Right Side */}
           <div className="d-flex align-items-center gap-3">
-            <span className="text-body-secondary">Admin</span>
+            <span className="text-body-secondary">User</span>
 
             <Link className="nav-link" to="/profile">
               Profile
