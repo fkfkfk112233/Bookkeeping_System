@@ -6,6 +6,7 @@ import AdminLayout from "./components/AdminLayout";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
+import Profile from "./pages/Profile";
 
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
@@ -29,6 +30,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
         {/* Admin System */}
