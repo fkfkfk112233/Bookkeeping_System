@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "./components/Layout";
 import AdminLayout from "./components/AdminLayout";
@@ -16,6 +16,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Root */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Login */}
         <Route path="/login" element={<Login />} />
 
@@ -23,17 +26,14 @@ function App() {
 
         {/* User System */}
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/transactions" element={<Transactions />} />
-
           <Route path="/categories" element={<Categories />} />
         </Route>
 
         {/* Admin System */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
-
           <Route path="/admin/users" element={<UserManagement />} />
         </Route>
       </Routes>
