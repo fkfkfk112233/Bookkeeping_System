@@ -7,11 +7,25 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // 目前先不做驗證
-    navigate("/");
+    try {
+      const user = await getUserByUsername(username);
+
+      if (!user.enabled) {
+        alert("此帳號已停用");
+        return;
+      }
+
+      localStorage.setItem("currentUser", JSON.stringify(user));
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      alert("找不到此 User");
+    }
   };
 
   return (
