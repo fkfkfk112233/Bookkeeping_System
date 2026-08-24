@@ -80,6 +80,22 @@ function UserManagement() {
     }
   };
 
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) {
+      return "-";
+    }
+
+    const date = new Date(dateTime);
+
+    return date.toLocaleString("zh-TW", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -138,7 +154,7 @@ function UserManagement() {
                     )}
                   </td>
 
-                  <td>{user.createdAt ?? "-"}</td>
+                  <td>{formatDateTime(user.createdAt)}</td>
 
                   <td>
                     <button
