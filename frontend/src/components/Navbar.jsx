@@ -1,6 +1,14 @@
-import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../utils/auth";
 
 function Navbar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+
+    navigate("/login");
+  };
   return (
     <nav className="navbar navbar-expand-lg bg-white border-bottom">
       <div className="container-fluid px-4 px-lg-5">
@@ -49,7 +57,11 @@ function Navbar() {
           <div className="d-flex align-items-center gap-3">
             <span className="text-body-secondary">Admin</span>
 
-            <button type="button" className="btn btn-primary px-4">
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={handleLogout}
+            >
               登出
             </button>
           </div>
