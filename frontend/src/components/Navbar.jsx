@@ -1,11 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../utils/auth";
 
 function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem("currentUser");
 
     navigate("/login");
   };
@@ -57,6 +57,9 @@ function Navbar() {
           <div className="d-flex align-items-center gap-3">
             <span className="text-body-secondary">Admin</span>
 
+            <Link className="nav-link" to="/profile">
+              Profile
+            </Link>
             <button
               type="button"
               className="btn btn-outline-danger"
