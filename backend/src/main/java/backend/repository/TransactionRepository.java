@@ -11,12 +11,15 @@ import org.springframework.data.repository.query.Param;
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.entity.Category;
 import backend.entity.Transaction;
+import backend.entity.User;
 import backend.enums.TransactionType;
 
 public interface TransactionRepository
         extends JpaRepository<Transaction, Long> {
 
     List<Transaction> findByCategory(Category category);
+    
+    boolean existsByUser(User user);
 
     // =========================
     // Summary
