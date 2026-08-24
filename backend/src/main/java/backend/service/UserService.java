@@ -2,6 +2,7 @@ package backend.service;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import backend.dto.user.UserProfileRequest;
@@ -19,13 +20,15 @@ public class UserService {
 	private final UserRepository userRepository;
 	private final CategoryRepository categoryRepository;
 	private final TransactionRepository transactionRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	public UserService(UserRepository userRepository, CategoryRepository categoryRepository,
-			TransactionRepository transactionRepository) {
+			TransactionRepository transactionRepository, PasswordEncoder passwordEncoder) {
 
 		this.userRepository = userRepository;
 		this.categoryRepository = categoryRepository;
 		this.transactionRepository = transactionRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	private UserProfileResponse toProfileResponse(User user) {
@@ -50,12 +53,9 @@ public class UserService {
 		return toProfileResponse(user);
 	}
 
-	public UserProfileResponse getUserProfileByUsername(
-			String username) {
+	public UserProfileResponse getUserProfileByUsername(String username) {
 
-		User user = userRepository
-				.findByUsername(username)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
 
 		return toProfileResponse(user);
 	}
@@ -80,27 +80,16 @@ public class UserService {
 		return response;
 	}
 
-	public UserProfileResponse updateUserProfile(
-			Long id,
-			UserProfileRequest request) {
+	public UserProfileResponse updateUserProfile(Long id, UserProfileRequest request) {
 
-		User user = userRepository
-				.findById(id)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
 		user.setUsername(request.getUsername());
 		user.setEmail(request.getEmail());
 
-		/*
-		 * 目前沒有真正的 Authentication，
-		 * 所以先允許直接修改 password。
-		 *
-		 * 之後加入 PasswordEncoder 時再修改。
-		 */
-		if (request.getPassword() != null
-				&& !request.getPassword().isBlank()) {
+		if (request.getPassword() != null && !request.getPassword().isBlank()) {
 
-			user.setPassword(request.getPassword());
+			user.setPassword(passwordEncoder.encode(request.getPassword()));
 		}
 
 		User updatedUser = userRepository.save(user);
@@ -110,9 +99,7 @@ public class UserService {
 
 	public void disableUser(Long id) {
 
-		User user = userRepository
-				.findById(id)
-				.orElseThrow(() -> new RuntimeException("User not found"));
+		User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
 		user.setEnabled(false);
 
@@ -148,7 +135,7 @@ public class UserService {
 		User user = new User();
 
 		user.setUsername(request.getUsername());
-		user.setPassword(request.getPassword());
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		user.setEmail(request.getEmail());
 		user.setRole(request.getRole());
 		user.setEnabled(request.getEnabled());
@@ -171,6 +158,11 @@ public class UserService {
 		user.setEmail(request.getEmail());
 		user.setRole(request.getRole());
 		user.setEnabled(request.getEnabled());
+
+		if (request.getPassword() != null && !request.getPassword().isBlank()) {
+
+			user.setPassword(passwordEncoder.encode(request.getPassword()));
+		}
 
 		User updatedUser = userRepository.save(user);
 
