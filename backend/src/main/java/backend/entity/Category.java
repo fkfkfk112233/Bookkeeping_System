@@ -29,7 +29,7 @@ public class Category {
 
     // 所屬使用者
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     // 父分類
