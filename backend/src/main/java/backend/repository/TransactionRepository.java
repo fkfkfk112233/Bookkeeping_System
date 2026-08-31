@@ -18,8 +18,13 @@ public interface TransactionRepository
         extends JpaRepository<Transaction, Long> {
 
     List<Transaction> findByCategory(Category category);
-    
+
     boolean existsByUser(User user);
+
+    List<Transaction> findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+            User user, LocalDateTime startDate, LocalDateTime endDate);
+
+    java.util.Optional<Transaction> findByIdAndUser(Long id, User user);
 
     // =========================
     // Summary
@@ -28,11 +33,13 @@ public interface TransactionRepository
     @Query("""
             SELECT COALESCE(SUM(t.amount), 0)
             FROM Transaction t
-            WHERE t.type = :type
+            WHERE t.user = :user
+            AND t.type = :type
             AND t.transactionDate >= :startDate
             AND t.transactionDate < :endDate
             """)
     BigDecimal sumAmountByTypeAndDateBetween(
+            @Param("user") User user,
             @Param("type") TransactionType type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
@@ -50,13 +57,15 @@ public interface TransactionRepository
             )
             FROM Transaction t
             LEFT JOIN t.category c
-            WHERE t.type = :type
+            WHERE t.user = :user
+            AND t.type = :type
             AND t.transactionDate >= :startDate
             AND t.transactionDate < :endDate
             GROUP BY c.id, c.name
             ORDER BY SUM(t.amount) DESC
             """)
     List<CategoryAmountResponse> sumAmountGroupByCategory(
+            @Param("user") User user,
             @Param("type") TransactionType type,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
@@ -67,10 +76,8 @@ public interface TransactionRepository
     // =========================
 
     List<Transaction>
-    findByTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-            TransactionType type,
-            LocalDateTime startDate,
-            LocalDateTime endDate
+    findByUserAndTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+            User user, TransactionType type, LocalDateTime startDate, LocalDateTime endDate
     );
 
     // =========================
@@ -78,8 +85,7 @@ public interface TransactionRepository
     // =========================
 
     List<Transaction>
-    findByTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-            LocalDateTime startDate,
-            LocalDateTime endDate
+    findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+            User user, LocalDateTime startDate, LocalDateTime endDate
     );
 }
