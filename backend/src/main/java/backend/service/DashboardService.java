@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import backend.dto.dashboard.CategoryAmountResponse;
 import backend.dto.dashboard.DashboardSummaryResponse;
@@ -20,16 +22,26 @@ import backend.dto.dashboard.TrendResponse;
 import backend.enums.StatisticsInterval;
 import backend.enums.TransactionType;
 import backend.repository.TransactionRepository;
+import backend.repository.UserRepository;
+import backend.entity.User;
 import backend.entity.Transaction;
 
 @Service
 public class DashboardService {
 
 	private final TransactionRepository transactionRepository;
+	private final UserRepository userRepository;
 
-	public DashboardService(TransactionRepository transactionRepository) {
+	public DashboardService(TransactionRepository transactionRepository, UserRepository userRepository) {
 
 		this.transactionRepository = transactionRepository;
+		this.userRepository = userRepository;
+	}
+
+	private User getCurrentUser() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return userRepository.findByUsername(authentication.getName())
+				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
 
 	// =========================
@@ -42,10 +54,10 @@ public class DashboardService {
 
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-		BigDecimal income = transactionRepository.sumAmountByTypeAndDateBetween(TransactionType.INCOME, startDateTime,
+		BigDecimal income = transactionRepository.sumAmountByTypeAndDateBetween(getCurrentUser(), TransactionType.INCOME, startDateTime,
 				endDateTime);
 
-		BigDecimal expense = transactionRepository.sumAmountByTypeAndDateBetween(TransactionType.EXPENSE, startDateTime,
+		BigDecimal expense = transactionRepository.sumAmountByTypeAndDateBetween(getCurrentUser(), TransactionType.EXPENSE, startDateTime,
 				endDateTime);
 
 		BigDecimal balance = income.subtract(expense);
@@ -63,7 +75,7 @@ public class DashboardService {
 
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(TransactionType.EXPENSE,
+		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(getCurrentUser(), TransactionType.EXPENSE,
 				startDateTime, endDateTime);
 
 		results.forEach(result -> {
@@ -87,7 +99,7 @@ public class DashboardService {
 
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(TransactionType.INCOME,
+		List<CategoryAmountResponse> results = transactionRepository.sumAmountGroupByCategory(getCurrentUser(), TransactionType.INCOME,
 				startDateTime, endDateTime);
 
 		results.forEach(result -> {
@@ -133,8 +145,8 @@ public class DashboardService {
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
 		List<Transaction> transactions = transactionRepository
-				.findByTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-						TransactionType.EXPENSE, startDateTime, endDateTime);
+				.findByUserAndTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+						getCurrentUser(), TransactionType.EXPENSE, startDateTime, endDateTime);
 
 		List<TrendResponse> response = groupTransactionsByInterval(transactions, interval);
 
@@ -223,8 +235,8 @@ public class DashboardService {
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
 		List<Transaction> transactions = transactionRepository
-				.findByTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-						TransactionType.INCOME, startDateTime, endDateTime);
+				.findByUserAndTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+						getCurrentUser(), TransactionType.INCOME, startDateTime, endDateTime);
 
 		List<TrendResponse> response = groupTransactionsByInterval(transactions, interval);
 
@@ -289,7 +301,7 @@ public class DashboardService {
 		LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
 		List<Transaction> transactions = transactionRepository
-				.findByTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(startDateTime,
+				.findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(getCurrentUser(), startDateTime,
 						endDateTime);
 
 		Map<String, Long> grouped = new HashMap<>();
