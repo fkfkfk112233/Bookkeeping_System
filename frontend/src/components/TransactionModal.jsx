@@ -159,6 +159,9 @@ function TransactionModal({
                   <option value="CASH">現金</option>
 
                   <option value="CREDIT_CARD">信用卡</option>
+                  <option value="TRANSFER">轉帳</option>
+                  <option value="LINE_PAY">LINE Pay</option>
+                  <option value="CARD">簽帳金融卡</option>
                 </select>
               </div>
 
