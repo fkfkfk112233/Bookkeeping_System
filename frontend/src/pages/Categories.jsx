@@ -120,6 +120,7 @@ function Categories() {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-primary me-2"
+                      disabled={category.defaultCategory}
                       onClick={() => {
                         setEditingCategory(category);
                         setCategoryName(category.name);
@@ -133,6 +134,7 @@ function Categories() {
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"
+                      disabled={category.defaultCategory}
                       onClick={() => setDeletingCategory(category)}
                     >
                       刪除
