@@ -3,6 +3,7 @@ package backend.config;
 import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import backend.repository.CategoryRepository;
 import backend.repository.UserRepository;
 
 @Component
+@Order(1)
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
