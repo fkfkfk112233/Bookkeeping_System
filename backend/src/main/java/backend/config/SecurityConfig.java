@@ -44,10 +44,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                 // 使用者只能存取自己的個人資料
+                // 個人資料 API 只允許已登入者，實際操作對象由 Controller
+                // 依 Authentication.getName() 決定，避免依賴角色字串格式。
                 .requestMatchers(
                     "/api/users/me",
                     "/api/users/me/**"
-                ).hasAnyRole("USER", "ADMIN")
+                ).authenticated()
 
                 // 其他使用者資料 API 僅限管理者
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
