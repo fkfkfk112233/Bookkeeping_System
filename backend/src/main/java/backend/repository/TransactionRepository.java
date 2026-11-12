@@ -23,6 +23,8 @@ public interface TransactionRepository
 
     boolean existsByUser(User user);
 
+    long deleteByUserAndDescriptionStartingWith(User user, String descriptionPrefix);
+
     // =========================
     // Transaction Query
     // =========================
