@@ -1,3 +1,5 @@
+import { getCategoryColor } from "../utils/categoryPalette";
+
 const PAYMENT_METHOD_LABELS = {
   CASH: "現金",
   CREDIT_CARD: "信用卡",
@@ -34,11 +36,28 @@ function TransactionTable({ transactions, onEdit, onDelete }) {
             transactions.map((transaction, index) => (
               <tr key={transaction.id}>
                 <td>{index + 1}</td>
-                <td>{transaction.type === "INCOME" ? "收入" : "支出"}</td>
+                <td>
+                  <span className={transaction.type === "INCOME" ? "income-type-badge" : "expense-type-badge"}>
+                    {transaction.type === "INCOME" ? "收入" : "支出"}
+                  </span>
+                </td>
 
-                <td>{transaction.categoryName ?? "未分類"}</td>
+                <td>
+                  <span
+                    className="category-color-badge"
+                    style={{
+                      "--category-color": getCategoryColor(transaction.categoryName),
+                      "--category-color-bg": `${getCategoryColor(transaction.categoryName)}18`,
+                      "--category-color-border": `${getCategoryColor(transaction.categoryName)}55`,
+                    }}
+                  >
+                    {transaction.categoryName ?? "未分類"}
+                  </span>
+                </td>
 
-                <td>${Number(transaction.amount).toLocaleString()}</td>
+                <td className={transaction.type === "INCOME" ? "income-amount" : "expense-amount"}>
+                  {transaction.type === "INCOME" ? "+" : "−"}${Number(transaction.amount).toLocaleString()}
+                </td>
 
                 <td>
                   {PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? transaction.paymentMethod ?? "-"}
