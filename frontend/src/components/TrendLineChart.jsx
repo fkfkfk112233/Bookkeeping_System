@@ -20,16 +20,16 @@ ChartJS.register(
   Filler,
 );
 
-function TrendLineChart({ data = [], label, valueKey = "amount" }) {
+function TrendLineChart({ data = [], label, valueKey = "amount", color = "#2A9D8F" }) {
   const chartData = {
     labels: data.map((item) => item.label),
     datasets: [
       {
         label,
         data: data.map((item) => item[valueKey]),
-        borderColor: "#2A9D8F",
-        backgroundColor: "rgba(46, 196, 182, 0.18)",
-        pointBackgroundColor: "#FF9F68",
+        borderColor: color,
+        backgroundColor: `${color}24`,
+        pointBackgroundColor: color,
         pointBorderColor: "#FFFFFF",
         pointBorderWidth: 2,
         pointRadius: 4,
