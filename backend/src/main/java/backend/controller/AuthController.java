@@ -22,53 +22,64 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-	private final AuthService authService;
+    private final AuthService authService;
+    private final UserRepository userRepository;
 
-	private final UserRepository userRepository;
+    public AuthController(AuthService authService, UserRepository userRepository) {
+        this.authService = authService;
+        this.userRepository = userRepository;
+    }
 
-	public AuthController(AuthService authService, UserRepository userRepository) {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
 
-		this.authService = authService;
-		this.userRepository = userRepository;
-	}
+        Authentication authentication =
+                authService.authenticate(request.getUsername(), request.getPassword());
 
-	@PostMapping("/login")
-	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+        User user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-		// =========================
-		// Authentication
-		// =========================
+        // 記錄最近一次成功登入時間，供管理者 Dashboard 統計使用。
+        user.setLastLoginAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
 
-		Authentication authentication = authService.authenticate(request.getUsername(), request.getPassword());
+        // 登入時更新 Session ID，避免 Session Fixation。
+        HttpSession existingSession = httpRequest.getSession(false);
+        if (existingSession != null) {
+            existingSession.invalidate();
+        }
 
-		// =========================
-		// Security Context
-		// =========================
+        HttpSession session = httpRequest.getSession(true);
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                context
+        );
 
-		SecurityContext context = SecurityContextHolder.createEmptyContext();
+        LoginResponse response = new LoginResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole(),
+                user.getEnabled()
+        );
 
-		context.setAuthentication(authentication);
+        return ResponseEntity.ok(response);
+    }
 
-		SecurityContextHolder.setContext(context);
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
 
-		// =========================
-		// HTTP Session
-		// =========================
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
 
-		HttpSession session = httpRequest.getSession(true);
-
-		session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
-
-		// =========================
-		// User Response
-		// =========================
-
-		User user = userRepository.findByUsername(authentication.getName())
-				.orElseThrow(() -> new RuntimeException("User not found"));
-
-		LoginResponse response = new LoginResponse(user.getId(), user.getUsername(), user.getEmail(), user.getRole(),
-				user.getEnabled());
-
-		return ResponseEntity.ok(response);
-	}
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.noContent().build();
+    }
 }
