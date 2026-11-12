@@ -272,6 +272,7 @@ function Dashboard() {
                 data={incomeTrendData}
                 label="收入"
                 valueKey="amount"
+                color="#2878D0"
               />
             </div>
           </div>
@@ -286,6 +287,7 @@ function Dashboard() {
                 data={expenseTrendData}
                 label="支出"
                 valueKey="amount"
+                color="#D94A4A"
               />
             </div>
           </div>
