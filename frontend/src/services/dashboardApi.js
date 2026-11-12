@@ -53,3 +53,8 @@ export function getDashboardFrequency(startDate, endDate) {
     },
   });
 }
+
+// Admin dashboard summary (ADMIN only).
+export function getAdminDashboardSummary() {
+  return api.get("/admin/dashboard/summary");
+}
