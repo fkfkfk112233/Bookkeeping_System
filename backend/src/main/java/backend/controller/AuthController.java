@@ -1,5 +1,8 @@
 package backend.controller;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -42,7 +45,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 記錄最近一次成功登入時間，供管理者 Dashboard 統計使用。
-        user.setLastLoginAt(java.time.LocalDateTime.now());
+        user.setLastLoginAt(LocalDateTime.now(ZoneId.of("Asia/Taipei")));
         userRepository.save(user);
 
         // 登入時更新 Session ID，避免 Session Fixation。
