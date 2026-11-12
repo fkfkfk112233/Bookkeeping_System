@@ -103,7 +103,7 @@ function UserManagement() {
 
     const matchesSearch =
       user.username.toLowerCase().includes(keyword) ||
-      user.email.toLowerCase().includes(keyword);
+      (user.email ?? "").toLowerCase().includes(keyword);
 
     const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
 
