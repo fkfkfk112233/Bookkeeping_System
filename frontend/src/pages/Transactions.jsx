@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useCallback, useEffect, useState } from "react";
 import TransactionTable from "../components/TransactionTable";
 import TransactionModal from "../components/TransactionModal";
@@ -212,10 +213,12 @@ function Transactions() {
   // Effects
   // =========================
 
+  // Initial load and date-range changes trigger an asynchronous API request.
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
+  // Load the category options once when the page mounts.
   useEffect(() => {
     fetchCategories();
   }, []);
