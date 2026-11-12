@@ -9,4 +9,13 @@ import backend.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
+
+    long countByRole(String role);
+
+    long countByEnabledFalse();
+
+    long countByLastLoginAtGreaterThanEqualAndLastLoginAtLessThan(
+            java.time.LocalDateTime start,
+            java.time.LocalDateTime end
+    );
 }
