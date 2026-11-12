@@ -1,3 +1,11 @@
+const PAYMENT_METHOD_LABELS = {
+  CASH: "現金",
+  CREDIT_CARD: "信用卡",
+  TRANSFER: "轉帳",
+  LINE_PAY: "LINE Pay",
+  CARD: "簽帳金融卡",
+};
+
 function TransactionTable({ transactions, onEdit, onDelete }) {
   return (
     <div className="table-responsive">
@@ -33,7 +41,7 @@ function TransactionTable({ transactions, onEdit, onDelete }) {
                 <td>${Number(transaction.amount).toLocaleString()}</td>
 
                 <td>
-                  {transaction.paymentMethod === "CASH" ? "現金" : "信用卡"}
+                  {PAYMENT_METHOD_LABELS[transaction.paymentMethod] ?? transaction.paymentMethod ?? "-"}
                 </td>
 
                 <td>{transaction.description || "-"}</td>
