@@ -1,0 +1,16 @@
+# Build output
+target/
+
+# Git metadata
+.git/
+.gitignore
+
+# Local SQLite databases (the container creates its own ephemeral database)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and editor files
+*.log
+.idea/
+.vscode/
