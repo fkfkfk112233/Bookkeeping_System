@@ -20,7 +20,7 @@ ChartJS.register(
   Filler,
 );
 
-function TrendLineChart({ data = [], label, valueKey = "amount", color = "#2A9D8F" }) {
+function TrendLineChart({ data = [], label, valueKey = "amount", color = "#4F7DF3" }) {
   const chartData = {
     labels: data.map((item) => item.label),
     datasets: [
@@ -28,7 +28,16 @@ function TrendLineChart({ data = [], label, valueKey = "amount", color = "#2A9D8
         label,
         data: data.map((item) => item[valueKey]),
         borderColor: color,
-        backgroundColor: `${color}24`,
+        backgroundColor: (context) => {
+          const { chart } = context;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return `${color}24`;
+
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, `${color}55`);
+          gradient.addColorStop(1, `${color}00`);
+          return gradient;
+        },
         pointBackgroundColor: color,
         pointBorderColor: "#FFFFFF",
         pointBorderWidth: 2,
@@ -49,8 +58,12 @@ function TrendLineChart({ data = [], label, valueKey = "amount", color = "#2A9D8
       legend: { display: true, labels: { usePointStyle: true } },
     },
     scales: {
-      x: { grid: { display: false } },
-      y: { beginAtZero: true, grid: { color: "rgba(31, 53, 71, 0.08)" } },
+      x: { grid: { display: false }, ticks: { color: "#7b879c" } },
+      y: {
+        beginAtZero: true,
+        grid: { color: "rgba(70, 88, 125, 0.09)" },
+        ticks: { color: "#7b879c" },
+      },
     },
   };
 
