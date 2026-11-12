@@ -4,10 +4,14 @@ import { logout } from "../utils/auth";
 function Navbar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("登出 API 失敗:", error);
+    } finally {
+      navigate("/login", { replace: true });
+    }
   };
   return (
     <nav className="navbar navbar-expand-lg bg-white border-bottom">
