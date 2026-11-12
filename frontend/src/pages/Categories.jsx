@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getCategoryColor } from "../utils/categoryPalette";
 import {
   getCategories,
   createCategory,
@@ -114,7 +115,18 @@ function Categories() {
               {categoryList.map((category, index) => (
                 <tr key={category.id}>
                   <td>{index + 1}</td>
-                  <td>{category.name}</td>
+                  <td>
+                    <span
+                      className="category-color-badge"
+                      style={{
+                        "--category-color": getCategoryColor(category.name),
+                        "--category-color-bg": `${getCategoryColor(category.name)}18`,
+                        "--category-color-border": `${getCategoryColor(category.name)}55`,
+                      }}
+                    >
+                      {category.name}
+                    </span>
+                  </td>
                   <td>{typeText}</td>
                   <td>
                     <button
