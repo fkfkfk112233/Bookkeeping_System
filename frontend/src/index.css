@@ -142,3 +142,45 @@ main,
     padding-right: 1rem !important;
   }
 }
+
+
+/* User interface color theme only; layout dimensions and positioning remain unchanged. */
+.user-interface .card {
+  border-color: #e3eaf2;
+  background-color: #ffffff;
+}
+
+.user-interface .card-header {
+  background-color: #f1f6fc;
+  border-bottom-color: #e3eaf2;
+}
+
+.user-interface .row.g-4.mb-4 > div:nth-child(2) .card {
+  border-top: 3px solid #2878d0;
+  background: linear-gradient(145deg, #ffffff 65%, #edf5ff 100%);
+}
+
+.user-interface .row.g-4.mb-4 > div:nth-child(3) .card {
+  border-top: 3px solid #d94a4a;
+  background: linear-gradient(145deg, #ffffff 65%, #fff0f0 100%);
+}
+
+.user-interface .row.g-4.mb-4 > div:nth-child(4) .card {
+  border-top: 3px solid #279b78;
+  background: linear-gradient(145deg, #ffffff 65%, #edfaf4 100%);
+}
+
+.user-interface .btn-primary {
+  background-color: #2878d0;
+  border-color: #2878d0;
+}
+
+.user-interface .btn-primary:hover {
+  background-color: #1f65b4;
+  border-color: #1f65b4;
+}
+
+.user-interface .table thead th {
+  background-color: #f1f6fc;
+  color: #34465a;
+}
