@@ -6,6 +6,7 @@ import {
   updateUserProfile,
   disableUser,
 } from "../services/userApi";
+import { logout } from "../utils/auth";
 
 function Profile() {
   const navigate = useNavigate();
@@ -29,26 +30,30 @@ function Profile() {
       return;
     }
 
-    fetchProfile(currentUser.id);
+    const fetchProfile = async () => {
+      try {
+        // 由後端 Session 決定目前使用者，不再使用 localStorage 的 id。
+        const data = await getUserProfile();
+
+        setUser(data);
+        setFormData({
+          username: data.username,
+          password: "",
+          email: data.email,
+        });
+      } catch (error) {
+        console.error("取得 Profile 失敗:", error);
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          localStorage.removeItem("currentUser");
+          navigate("/login", { replace: true });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, [navigate]);
-
-  const fetchProfile = async (id) => {
-    try {
-      const data = await getUserProfile(id);
-
-      setUser(data);
-
-      setFormData({
-        username: data.username,
-        password: "",
-        email: data.email,
-      });
-    } catch (error) {
-      console.error("取得 Profile 失敗:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,7 +74,13 @@ function Profile() {
     try {
       setSaving(true);
 
-      const updatedUser = await updateUserProfile(user.id, formData);
+      const updatedUser = await updateUserProfile({
+        // username 暫時保持不變，避免變更登入識別名稱後，
+        // 目前 Session 的 Authentication principal 與資料庫不一致。
+        username: user.username,
+        email: formData.email,
+        password: formData.password,
+      });
 
       setUser(updatedUser);
 
@@ -106,11 +117,10 @@ function Profile() {
     }
 
     try {
-      await disableUser(user.id);
+      await disableUser();
+      await logout();
 
-      localStorage.removeItem("currentUser");
-
-      navigate("/login");
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("停用帳號失敗:", error);
 
@@ -157,8 +167,12 @@ function Profile() {
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
+                    disabled
                     required
                   />
+                  <div className="form-text">
+                    Username 目前作為登入識別，暫不提供自行修改。
+                  </div>
                 </div>
 
                 {/* Email */}
