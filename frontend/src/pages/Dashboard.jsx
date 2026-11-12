@@ -301,6 +301,7 @@ function Dashboard() {
                   data={frequencyData}
                   label="記帳次數"
                   valueKey="count"
+                  color="#22C55E"
                 />
               </ChartCard>
             </div>
