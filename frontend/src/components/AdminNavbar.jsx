@@ -1,12 +1,17 @@
 import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "../utils/auth";
 
 function AdminNavbar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-
-    navigate("/login/admin");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("管理者登出 API 失敗:", error);
+    } finally {
+      navigate("/login/admin", { replace: true });
+    }
   };
 
   return (
