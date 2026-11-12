@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 
 import {
@@ -18,10 +19,6 @@ function UserManagement() {
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -35,6 +32,10 @@ function UserManagement() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleCreateUser = async (userData) => {
     try {
@@ -188,18 +189,6 @@ function UserManagement() {
           </div>
         </div>
 
-        {/* Status */}
-        <div className="col-12 col-md-3 col-lg-2">
-          <select
-            className="form-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">全部狀態</option>
-            <option value="ENABLED">Enabled</option>
-            <option value="DISABLED">Disabled</option>
-          </select>
-        </div>
       </div>
 
       {loading ? (
