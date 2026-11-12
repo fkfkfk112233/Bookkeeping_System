@@ -1,8 +1,10 @@
+
 package backend.repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,10 +23,17 @@ public interface TransactionRepository
 
     boolean existsByUser(User user);
 
-    List<Transaction> findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-            User user, LocalDateTime startDate, LocalDateTime endDate);
+    // =========================
+    // Transaction Query
+    // =========================
 
-    java.util.Optional<Transaction> findByIdAndUser(Long id, User user);
+    List<Transaction> findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
+            User user,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    );
+
+    Optional<Transaction> findByIdAndUser(Long id, User user);
 
     // =========================
     // Summary
@@ -77,15 +86,10 @@ public interface TransactionRepository
 
     List<Transaction>
     findByUserAndTypeAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-            User user, TransactionType type, LocalDateTime startDate, LocalDateTime endDate
+            User user,
+            TransactionType type,
+            LocalDateTime startDate,
+            LocalDateTime endDate
     );
 
-    // =========================
-    // Frequency
-    // =========================
-
-    List<Transaction>
-    findByUserAndTransactionDateGreaterThanEqualAndTransactionDateLessThanOrderByTransactionDateAsc(
-            User user, LocalDateTime startDate, LocalDateTime endDate
-    );
 }
