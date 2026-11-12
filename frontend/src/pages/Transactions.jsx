@@ -18,7 +18,7 @@ const formatDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const getDateRange = (dateRange) => {
+const getDateRange = (dateRange, selectedMonth) => {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -30,6 +30,17 @@ const getDateRange = (dateRange) => {
     return {
       startDate: date,
       endDate: date,
+    };
+  }
+
+  if (dateRange === "selectedMonth") {
+    const [selectedYear, selectedMonthNumber] = selectedMonth.split("-").map(Number);
+    const start = new Date(selectedYear, selectedMonthNumber - 1, 1);
+    const end = new Date(selectedYear, selectedMonthNumber, 0);
+
+    return {
+      startDate: formatDate(start),
+      endDate: formatDate(end),
     };
   }
 
@@ -74,6 +85,14 @@ function Transactions() {
   const [error, setError] = useState("");
 
   const [dateRange, setDateRange] = useState("month");
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [queryMonth, setQueryMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   // =========================
   // Fetch Transactions
@@ -84,7 +103,7 @@ function Transactions() {
       setLoading(true);
       setError("");
 
-      const { startDate, endDate } = getDateRange(dateRange);
+      const { startDate, endDate } = getDateRange(dateRange, queryMonth);
 
       const response = await getTransactions(startDate, endDate);
 
@@ -98,7 +117,7 @@ function Transactions() {
     } finally {
       setLoading(false);
     }
-  }, [dateRange]);
+  }, [dateRange, queryMonth]);
 
   // =========================
   // Fetch Categories
@@ -288,6 +307,34 @@ function Transactions() {
               onClick={() => setDateRange("month")}
             >
               本月
+            </button>
+          </div>
+
+          <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
+            <label htmlFor="transaction-month" className="form-label mb-0">
+              查詢月份
+            </label>
+            <input
+              id="transaction-month"
+              type="month"
+              className="form-control"
+              style={{ width: "auto" }}
+              value={selectedMonth}
+              onChange={(event) => {
+                if (event.target.value) {
+                  setSelectedMonth(event.target.value);
+                }
+              }}
+            />
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={() => {
+                setQueryMonth(selectedMonth);
+                setDateRange("selectedMonth");
+              }}
+            >
+              查詢
             </button>
           </div>
 
