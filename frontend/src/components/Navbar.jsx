@@ -14,7 +14,7 @@ function Navbar() {
     }
   };
   return (
-    <nav className="navbar navbar-expand-lg bg-white border-bottom">
+    <nav className="navbar navbar-expand-lg bg-white border-bottom user-navbar">
       <div className="container-fluid px-4 px-lg-5">
         {/* Logo / Brand */}
         <NavLink className="navbar-brand fw-semibold" to="/">
