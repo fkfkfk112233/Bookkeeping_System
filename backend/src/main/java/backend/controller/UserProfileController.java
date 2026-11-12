@@ -1,7 +1,8 @@
+
 package backend.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,14 +26,56 @@ public class UserProfileController {
     }
 
     // =========================
-    // GET PROFILE
+    // CURRENT USER PROFILE
+    // =========================
+
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMyProfile(
+            Authentication authentication) {
+
+        UserProfileResponse response =
+                userService.getUserProfileByUsername(
+                        authentication.getName()
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserProfileResponse> updateMyProfile(
+            Authentication authentication,
+            @RequestBody UserProfileRequest request) {
+
+        UserProfileResponse response =
+                userService.updateUserProfileByUsername(
+                        authentication.getName(),
+                        request
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/me/disable")
+    public ResponseEntity<Void> disableMyAccount(
+            Authentication authentication) {
+
+        userService.disableUserByUsername(
+                authentication.getName()
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // =========================
+    // ADMIN ONLY PROFILE APIs
     // =========================
 
     @GetMapping("/{id}")
     public ResponseEntity<UserProfileResponse> getProfile(
             @PathVariable Long id) {
 
-        UserProfileResponse response = userService.getUserProfile(id);
+        UserProfileResponse response =
+                userService.getUserProfile(id);
 
         return ResponseEntity.ok(response);
     }
@@ -41,30 +84,22 @@ public class UserProfileController {
     public ResponseEntity<UserProfileResponse> getProfileByUsername(
             @PathVariable String username) {
 
-        UserProfileResponse response = userService.getUserProfileByUsername(username);
+        UserProfileResponse response =
+                userService.getUserProfileByUsername(username);
 
         return ResponseEntity.ok(response);
     }
-
-    // =========================
-    // UPDATE PROFILE
-    // =========================
 
     @PutMapping("/{id}")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @PathVariable Long id,
             @RequestBody UserProfileRequest request) {
 
-        UserProfileResponse response = userService.updateUserProfile(
-                id,
-                request);
+        UserProfileResponse response =
+                userService.updateUserProfile(id, request);
 
         return ResponseEntity.ok(response);
     }
-
-    // =========================
-    // DISABLE ACCOUNT
-    // =========================
 
     @PatchMapping("/{id}/disable")
     public ResponseEntity<Void> disableAccount(
