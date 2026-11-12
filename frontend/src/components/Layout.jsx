@@ -6,7 +6,7 @@ function Layout() {
     <>
       <Navbar />
 
-      <main>
+      <main className="user-interface">
         <Outlet />
       </main>
     </>
