@@ -6,8 +6,8 @@ import {
   LineElement,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
-
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -17,17 +17,26 @@ ChartJS.register(
   LineElement,
   Tooltip,
   Legend,
+  Filler,
 );
 
-function TrendLineChart({ data, label, valueKey = "amount" }) {
+function TrendLineChart({ data = [], label, valueKey = "amount" }) {
   const chartData = {
     labels: data.map((item) => item.label),
-
     datasets: [
       {
-        label: label,
+        label,
         data: data.map((item) => item[valueKey]),
-        tension: 0.3,
+        borderColor: "#2A9D8F",
+        backgroundColor: "rgba(46, 196, 182, 0.18)",
+        pointBackgroundColor: "#FF9F68",
+        pointBorderColor: "#FFFFFF",
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 3,
+        tension: 0.35,
+        fill: true,
       },
     ],
   };
@@ -35,21 +44,18 @@ function TrendLineChart({ data, label, valueKey = "amount" }) {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-
+    interaction: { intersect: false, mode: "index" },
     plugins: {
-      legend: {
-        display: true,
-      },
+      legend: { display: true, labels: { usePointStyle: true } },
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, grid: { color: "rgba(31, 53, 71, 0.08)" } },
     },
   };
 
   return (
-    <div
-      style={{
-        height: "280px",
-        position: "relative",
-      }}
-    >
+    <div className="chart-container">
       <Line data={chartData} options={options} />
     </div>
   );
